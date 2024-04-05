@@ -8,12 +8,21 @@
 
 /* Begin PBXBuildFile section */
 		973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */; };
-		973AEEEF2BBF3FF70083CBED /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEE2BBF3FF70083CBED /* ContentView.swift */; };
+		973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEE2BBF3FF70083CBED /* RootView.swift */; };
 		973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 973AEEF02BBF3FF90083CBED /* Assets.xcassets */; };
 		973AEEF42BBF3FF90083CBED /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 973AEEF32BBF3FF90083CBED /* Preview Assets.xcassets */; };
 		973AEEFE2BBF3FF90083CBED /* RedefineGuideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEFD2BBF3FF90083CBED /* RedefineGuideTests.swift */; };
 		973AEF082BBF3FF90083CBED /* RedefineGuideUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF072BBF3FF90083CBED /* RedefineGuideUITests.swift */; };
 		973AEF0A2BBF3FF90083CBED /* RedefineGuideUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF092BBF3FF90083CBED /* RedefineGuideUITestsLaunchTests.swift */; };
+		973AEF172BBF41B40083CBED /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF162BBF41B40083CBED /* Logging.swift */; };
+		973AEF192BBF41E20083CBED /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF182BBF41E20083CBED /* Helpers.swift */; };
+		973AEF1B2BBF42390083CBED /* LifecycleEventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF1A2BBF42390083CBED /* LifecycleEventMonitor.swift */; };
+		973AEF202BBF427D0083CBED /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF1F2BBF427D0083CBED /* AsyncButton.swift */; };
+		973AEF222BBF42960083CBED /* DepthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF212BBF42960083CBED /* DepthManager.swift */; };
+		973AEF292BBFA9FA0083CBED /* AsyncQueueProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF282BBFA9FA0083CBED /* AsyncQueueProcessor.swift */; };
+		973AEF2C2BBFAA080083CBED /* ThreadSafeDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */; };
+		973AEF2D2BBFAA080083CBED /* ThreadSafeQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */; };
+		973AEF2F2BBFAA6F0083CBED /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF2E2BBFAA6F0083CBED /* Constants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,7 +45,7 @@
 /* Begin PBXFileReference section */
 		973AEEE92BBF3FF70083CBED /* RedefineGuide.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RedefineGuide.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedefineGuideApp.swift; sourceTree = "<group>"; };
-		973AEEEE2BBF3FF70083CBED /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		973AEEEE2BBF3FF70083CBED /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		973AEEF02BBF3FF90083CBED /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		973AEEF32BBF3FF90083CBED /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		973AEEF92BBF3FF90083CBED /* RedefineGuideTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RedefineGuideTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,6 +53,16 @@
 		973AEF032BBF3FF90083CBED /* RedefineGuideUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RedefineGuideUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		973AEF072BBF3FF90083CBED /* RedefineGuideUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedefineGuideUITests.swift; sourceTree = "<group>"; };
 		973AEF092BBF3FF90083CBED /* RedefineGuideUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedefineGuideUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		973AEF162BBF41B40083CBED /* Logging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
+		973AEF182BBF41E20083CBED /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
+		973AEF1A2BBF42390083CBED /* LifecycleEventMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LifecycleEventMonitor.swift; sourceTree = "<group>"; };
+		973AEF1F2BBF427D0083CBED /* AsyncButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsyncButton.swift; sourceTree = "<group>"; };
+		973AEF212BBF42960083CBED /* DepthManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DepthManager.swift; sourceTree = "<group>"; };
+		973AEF232BBFA6610083CBED /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		973AEF282BBFA9FA0083CBED /* AsyncQueueProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsyncQueueProcessor.swift; sourceTree = "<group>"; };
+		973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThreadSafeDictionary.swift; sourceTree = "<group>"; };
+		973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThreadSafeQueue.swift; sourceTree = "<group>"; };
+		973AEF2E2BBFAA6F0083CBED /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,10 +113,21 @@
 		973AEEEB2BBF3FF70083CBED /* RedefineGuide */ = {
 			isa = PBXGroup;
 			children = (
+				973AEF232BBFA6610083CBED /* Info.plist */,
+				973AEF282BBFA9FA0083CBED /* AsyncQueueProcessor.swift */,
+				973AEF2E2BBFAA6F0083CBED /* Constants.swift */,
+				973AEF182BBF41E20083CBED /* Helpers.swift */,
+				973AEF1A2BBF42390083CBED /* LifecycleEventMonitor.swift */,
+				973AEF162BBF41B40083CBED /* Logging.swift */,
 				973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */,
-				973AEEEE2BBF3FF70083CBED /* ContentView.swift */,
+				973AEEEE2BBF3FF70083CBED /* RootView.swift */,
+				973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */,
+				973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */,
 				973AEEF02BBF3FF90083CBED /* Assets.xcassets */,
+				973AEF1C2BBF425B0083CBED /* Controllers */,
+				973AEF1E2BBF42670083CBED /* Models */,
 				973AEEF22BBF3FF90083CBED /* Preview Content */,
+				973AEF1D2BBF42610083CBED /* Views */,
 			);
 			path = RedefineGuide;
 			sourceTree = "<group>";
@@ -125,6 +155,29 @@
 				973AEF092BBF3FF90083CBED /* RedefineGuideUITestsLaunchTests.swift */,
 			);
 			path = RedefineGuideUITests;
+			sourceTree = "<group>";
+		};
+		973AEF1C2BBF425B0083CBED /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				973AEF212BBF42960083CBED /* DepthManager.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		973AEF1D2BBF42610083CBED /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				973AEF1F2BBF427D0083CBED /* AsyncButton.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		973AEF1E2BBF42670083CBED /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -257,8 +310,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				973AEEEF2BBF3FF70083CBED /* ContentView.swift in Sources */,
+				973AEF2D2BBFAA080083CBED /* ThreadSafeQueue.swift in Sources */,
+				973AEF2F2BBFAA6F0083CBED /* Constants.swift in Sources */,
+				973AEF1B2BBF42390083CBED /* LifecycleEventMonitor.swift in Sources */,
+				973AEF222BBF42960083CBED /* DepthManager.swift in Sources */,
+				973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */,
+				973AEF202BBF427D0083CBED /* AsyncButton.swift in Sources */,
+				973AEF2C2BBFAA080083CBED /* ThreadSafeDictionary.swift in Sources */,
+				973AEF172BBF41B40083CBED /* Logging.swift in Sources */,
 				973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */,
+				973AEF192BBF41E20083CBED /* Helpers.swift in Sources */,
+				973AEF292BBFA9FA0083CBED /* AsyncQueueProcessor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -425,6 +487,9 @@
 				DEVELOPMENT_TEAM = FUP9L59XCD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RedefineGuide/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "RS Guide Dev";
+				INFOPLIST_KEY_NSCameraUsageDescription = "For overlaying guides over camera scenes";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -435,7 +500,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.RedefineGuide;
+				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.guide.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -454,6 +519,9 @@
 				DEVELOPMENT_TEAM = FUP9L59XCD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RedefineGuide/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "RS Guide";
+				INFOPLIST_KEY_NSCameraUsageDescription = "For overlaying guides over camera scenes";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -464,7 +532,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.RedefineGuide;
+				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.guide;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

@@ -1,13 +1,6 @@
-//
-//  ContentView.swift
-//  RedefineGuide
-//
-//  Created by Stephen Potter on 4/4/24.
-//
-
 import SwiftUI
 
-struct ContentView: View {
+struct RootView: View {
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -20,5 +13,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    RootView()
 }
