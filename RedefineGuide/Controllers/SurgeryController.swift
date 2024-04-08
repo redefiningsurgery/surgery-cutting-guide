@@ -65,7 +65,7 @@ class SurgeryController: NSObject {
 extension SurgeryController: ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         DispatchQueue.main.async {
-            if let leadingCube = self.leadingCube {
+            if self.leadingCube != nil {
                 self.updateCubePosition()
             }
         }
@@ -111,7 +111,7 @@ extension SurgeryController: SurgeryModelDelegate {
     
     func addLeadingCube() {
         // If the cube node already exists, just update its position
-        if let existingNode = leadingCube {
+        if leadingCube != nil {
             updateCubePosition()
             return
         }
