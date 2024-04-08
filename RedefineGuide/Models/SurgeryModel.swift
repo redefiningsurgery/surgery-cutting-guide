@@ -1,10 +1,3 @@
-//
-//  SurgeryModel.swift
-//  RedefineGuide
-//
-//  Created by Stephen Potter on 4/8/24.
-//
-
 import Foundation
 import ARKit
 
@@ -20,9 +13,9 @@ class SurgeryModel: NSObject, ObservableObject {
         return delegate?.getARView() ?? ARSCNView()
     }
     
-    func addSomething() {
+    func onTap(point: CGPoint) {
         do {
-            try delegate?.addSomething()
+            try delegate?.addSomething(point: point)
         } catch {
             logger.error("Error adding something: \(error.localizedDescription)")
         }
@@ -33,5 +26,5 @@ class SurgeryModel: NSObject, ObservableObject {
 
 protocol SurgeryModelDelegate: AnyObject {
     func getARView() -> ARSCNView
-    func addSomething() throws
+    func addSomething(point: CGPoint) throws
 }

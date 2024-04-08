@@ -24,32 +24,39 @@ class ARViewController: NSObject {
 
 extension ARViewController: ARSCNViewDelegate {
 
-    /// temporary functionality to add a box to the scene
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
-        
-        logger.info("Placing a box at the detected plane")
-        
-        // Create a virtual object (e.g., a box) to place on the detected surface
-        let box = SCNBox(width: 0.2, height: 0.2, length: 0.2, chamferRadius: 0)
-        
-        let material = SCNMaterial()
-        material.diffuse.contents = UIColor.blue // Set the color of the box
-        box.materials = [material]
-        
-        // Create a node for the box
-        let boxNode = SCNNode(geometry: box)
-        
-        // Position the box node on the plane anchor
-        boxNode.position = SCNVector3(
-            planeAnchor.center.x,
-            0, // Assume the box's bottom should rest on the plane, hence y is 0
-            planeAnchor.center.z)
-        
-        // Add the box node to the detected plane node
-        node.addChildNode(boxNode)
-    }
+    /// temporary functionality to add a box to each newly detected plane
+//    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+//        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+//        
+//        logger.info("Placing a box at the detected plane")
+//        
+//        // Create a virtual object (e.g., a box) to place on the detected surface
+//        let box = SCNBox(width: 0.2, height: 0.2, length: 0.2, chamferRadius: 0)
+//        
+//        let material = SCNMaterial()
+//        material.diffuse.contents = UIColor.blue // Set the color of the box
+//        box.materials = [material]
+//        
+//        // Create a node for the box
+//        let boxNode = SCNNode(geometry: box)
+//        
+//        // Position the box node on the plane anchor
+//        boxNode.position = SCNVector3(
+//            planeAnchor.center.x,
+//            0, // Assume the box's bottom should rest on the plane, hence y is 0
+//            planeAnchor.center.z)
+//        
+//        // Add the box node to the detected plane node
+//        node.addChildNode(boxNode)
+//    }
 
+}
+
+extension ARViewController: ARSessionDelegate {
+    /// Called every time the ARFrame is updated
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        // frame.sceneDepth?.depthMap
+    }
 }
 
 
@@ -77,22 +84,48 @@ extension ARViewController: SurgeryModelDelegate {
         arConfiguration.frameSemantics.insert(.sceneDepth)
         arConfiguration.planeDetection = .horizontal
 //        arConfiguration.frameSemantics.insert(.bodyDetection)
-        
+
+        sceneView.session.delegate = self
         sceneView.session.run(arConfiguration)
         
         return sceneView
     }
 
-    func addSomething() throws {
-        guard let scene = scene else {
-            logger.error("scene didn't exist")
+    func addSomething(point: CGPoint) throws {
+        guard let sceneView = sceneView else {
+            logger.error("sceneView didn't exist")
             return
         }
         
-        logger.info("Adding something")
-        let cubeNode = SCNNode(geometry: SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0))
-        cubeNode.position = SCNVector3(0, 0, -0.2) // SceneKit/AR coordinates are in meters
-        scene.rootNode.addChildNode(cubeNode)
+        guard let query = sceneView.raycastQuery(from: point, allowing: .estimatedPlane, alignment: .horizontal) else {
+            return
+        }
+        
+        // Perform the raycast
+        let results = sceneView.session.raycast(query)
+        
+        // Check if the raycast found a surface
+        if let firstResult = results.first {
+            // Create a new SCNBox (a 3D box)
+            let boxGeometry = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.0)
+            let material = SCNMaterial()
+            material.diffuse.contents = UIColor.blue // Example: Set the box color to blue
+            boxGeometry.materials = [material]
+            
+            let boxNode = SCNNode(geometry: boxGeometry)
+            
+            // Set the position of the boxNode using the firstResult's worldTransform
+            boxNode.simdTransform = firstResult.worldTransform
+            
+            // Adjust Y position to make the box sit on the plane
+            boxNode.position.y += Float(boxGeometry.height / 2)
+            
+            // Add the box node to the scene
+            sceneView.scene.rootNode.addChildNode(boxNode)
+            logger.info("Added box")
+        } else {
+            logger.warning("No hit result")
+        }
     }
     
     func addModel(_ name: String) throws {
