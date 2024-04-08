@@ -2,6 +2,8 @@ import Foundation
 import ARKit
 
 class SurgeryModel: NSObject, ObservableObject {
+
+    @Published var showLeadingCube = false
     
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("ARViewController")

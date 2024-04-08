@@ -10,8 +10,15 @@ struct SurgeryView: View {
                 .onTapGesture { location in
                     model.onTap(point: location)
                 }
-            Button("Reset Center") {
-                model.resetWorldOrigin()
+            HStack {
+                Toggle(isOn: $model.showLeadingCube) {
+                    Text("Show Leading Cube")
+                      .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                Spacer()
+                Button("Reset Center") {
+                    model.resetWorldOrigin()
+                }
             }
         }
     }
