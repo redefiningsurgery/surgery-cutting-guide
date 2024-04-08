@@ -68,6 +68,7 @@ extension SurgeryController: SurgeryModelDelegate {
             return arView
         }
         let sceneView = ARSCNView()
+        sceneView.debugOptions = [.showWorldOrigin]
         sceneView.delegate = self
         sceneView.showsStatistics = true // show fps and timing info
         sceneView.automaticallyUpdatesLighting = true // automatic lighting
