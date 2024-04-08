@@ -18,11 +18,18 @@
 		973AEF192BBF41E20083CBED /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF182BBF41E20083CBED /* Helpers.swift */; };
 		973AEF1B2BBF42390083CBED /* LifecycleEventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF1A2BBF42390083CBED /* LifecycleEventMonitor.swift */; };
 		973AEF202BBF427D0083CBED /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF1F2BBF427D0083CBED /* AsyncButton.swift */; };
-		973AEF222BBF42960083CBED /* DepthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF212BBF42960083CBED /* DepthManager.swift */; };
 		973AEF292BBFA9FA0083CBED /* AsyncQueueProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF282BBFA9FA0083CBED /* AsyncQueueProcessor.swift */; };
 		973AEF2C2BBFAA080083CBED /* ThreadSafeDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */; };
 		973AEF2D2BBFAA080083CBED /* ThreadSafeQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */; };
 		973AEF2F2BBFAA6F0083CBED /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF2E2BBFAA6F0083CBED /* Constants.swift */; };
+		973AEF312BBFAB250083CBED /* ARViewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF302BBFAB250083CBED /* ARViewContainer.swift */; };
+		973AEF332BBFAC3F0083CBED /* AppInitializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF322BBFAC3F0083CBED /* AppInitializer.swift */; };
+		973AEF352BBFAC6E0083CBED /* AppInitializationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF342BBFAC6E0083CBED /* AppInitializationModel.swift */; };
+		973AEF372BBFB0250083CBED /* Centered.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF362BBFB0250083CBED /* Centered.swift */; };
+		973AEF392BBFB3670083CBED /* ARViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF382BBFB3670083CBED /* ARViewController.swift */; };
+		973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3A2BC433EE0083CBED /* SurgeryView.swift */; };
+		973AEF3D2BC43C6E0083CBED /* teapot.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 973AEF3C2BC43C6E0083CBED /* teapot.usdz */; };
+		973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3E2BC456A20083CBED /* SurgeryModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,12 +64,19 @@
 		973AEF182BBF41E20083CBED /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		973AEF1A2BBF42390083CBED /* LifecycleEventMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LifecycleEventMonitor.swift; sourceTree = "<group>"; };
 		973AEF1F2BBF427D0083CBED /* AsyncButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsyncButton.swift; sourceTree = "<group>"; };
-		973AEF212BBF42960083CBED /* DepthManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DepthManager.swift; sourceTree = "<group>"; };
 		973AEF232BBFA6610083CBED /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		973AEF282BBFA9FA0083CBED /* AsyncQueueProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsyncQueueProcessor.swift; sourceTree = "<group>"; };
 		973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThreadSafeDictionary.swift; sourceTree = "<group>"; };
 		973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThreadSafeQueue.swift; sourceTree = "<group>"; };
 		973AEF2E2BBFAA6F0083CBED /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		973AEF302BBFAB250083CBED /* ARViewContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARViewContainer.swift; sourceTree = "<group>"; };
+		973AEF322BBFAC3F0083CBED /* AppInitializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInitializer.swift; sourceTree = "<group>"; };
+		973AEF342BBFAC6E0083CBED /* AppInitializationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInitializationModel.swift; sourceTree = "<group>"; };
+		973AEF362BBFB0250083CBED /* Centered.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Centered.swift; sourceTree = "<group>"; };
+		973AEF382BBFB3670083CBED /* ARViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARViewController.swift; sourceTree = "<group>"; };
+		973AEF3A2BC433EE0083CBED /* SurgeryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryView.swift; sourceTree = "<group>"; };
+		973AEF3C2BC43C6E0083CBED /* teapot.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = teapot.usdz; sourceTree = "<group>"; };
+		973AEF3E2BC456A20083CBED /* SurgeryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,13 +128,13 @@
 			isa = PBXGroup;
 			children = (
 				973AEF232BBFA6610083CBED /* Info.plist */,
+				973AEF3C2BC43C6E0083CBED /* teapot.usdz */,
 				973AEF282BBFA9FA0083CBED /* AsyncQueueProcessor.swift */,
 				973AEF2E2BBFAA6F0083CBED /* Constants.swift */,
 				973AEF182BBF41E20083CBED /* Helpers.swift */,
 				973AEF1A2BBF42390083CBED /* LifecycleEventMonitor.swift */,
 				973AEF162BBF41B40083CBED /* Logging.swift */,
 				973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */,
-				973AEEEE2BBF3FF70083CBED /* RootView.swift */,
 				973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */,
 				973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */,
 				973AEEF02BBF3FF90083CBED /* Assets.xcassets */,
@@ -160,7 +174,8 @@
 		973AEF1C2BBF425B0083CBED /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				973AEF212BBF42960083CBED /* DepthManager.swift */,
+				973AEF322BBFAC3F0083CBED /* AppInitializer.swift */,
+				973AEF382BBFB3670083CBED /* ARViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -168,7 +183,11 @@
 		973AEF1D2BBF42610083CBED /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				973AEF362BBFB0250083CBED /* Centered.swift */,
+				973AEEEE2BBF3FF70083CBED /* RootView.swift */,
 				973AEF1F2BBF427D0083CBED /* AsyncButton.swift */,
+				973AEF302BBFAB250083CBED /* ARViewContainer.swift */,
+				973AEF3A2BC433EE0083CBED /* SurgeryView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -176,6 +195,8 @@
 		973AEF1E2BBF42670083CBED /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				973AEF342BBFAC6E0083CBED /* AppInitializationModel.swift */,
+				973AEF3E2BC456A20083CBED /* SurgeryModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -284,6 +305,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				973AEF3D2BC43C6E0083CBED /* teapot.usdz in Resources */,
 				973AEEF42BBF3FF90083CBED /* Preview Assets.xcassets in Resources */,
 				973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */,
 			);
@@ -313,14 +335,20 @@
 				973AEF2D2BBFAA080083CBED /* ThreadSafeQueue.swift in Sources */,
 				973AEF2F2BBFAA6F0083CBED /* Constants.swift in Sources */,
 				973AEF1B2BBF42390083CBED /* LifecycleEventMonitor.swift in Sources */,
-				973AEF222BBF42960083CBED /* DepthManager.swift in Sources */,
+				973AEF352BBFAC6E0083CBED /* AppInitializationModel.swift in Sources */,
 				973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */,
+				973AEF312BBFAB250083CBED /* ARViewContainer.swift in Sources */,
 				973AEF202BBF427D0083CBED /* AsyncButton.swift in Sources */,
 				973AEF2C2BBFAA080083CBED /* ThreadSafeDictionary.swift in Sources */,
+				973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */,
+				973AEF332BBFAC3F0083CBED /* AppInitializer.swift in Sources */,
+				973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */,
+				973AEF392BBFB3670083CBED /* ARViewController.swift in Sources */,
 				973AEF172BBF41B40083CBED /* Logging.swift in Sources */,
 				973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */,
 				973AEF192BBF41E20083CBED /* Helpers.swift in Sources */,
 				973AEF292BBFA9FA0083CBED /* AsyncQueueProcessor.swift in Sources */,
+				973AEF372BBFB0250083CBED /* Centered.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -409,7 +437,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -466,7 +494,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -484,7 +512,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"RedefineGuide/Preview Content\"";
-				DEVELOPMENT_TEAM = FUP9L59XCD;
+				DEVELOPMENT_TEAM = C47Q8A6352;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RedefineGuide/Info.plist;
