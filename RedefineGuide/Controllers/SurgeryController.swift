@@ -20,35 +20,29 @@ class SurgeryController: NSObject {
     func pause() {
         self.sceneView?.session.pause()
     }
+    
+    func resetWorldOrigin() {
+        pause()
+        startSession()
+    }
+    
+    private func startSession() {
+        guard let sceneView = sceneView else {
+            logger.error("No sceneView.  Cannot start ARSession")
+            return
+        }
+        let arConfiguration = ARWorldTrackingConfiguration()
+        arConfiguration.frameSemantics.insert(.sceneDepth)
+        arConfiguration.planeDetection = .horizontal
+        arConfiguration.isAutoFocusEnabled = true
+
+        sceneView.session.delegate = self
+        sceneView.session.run(arConfiguration, options: [.resetTracking])
+        logger.info("Started AR session")
+    }
 }
 
 extension SurgeryController: ARSCNViewDelegate {
-
-    /// temporary functionality to add a box to each newly detected plane
-//    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-//        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
-//        
-//        logger.info("Placing a box at the detected plane")
-//        
-//        // Create a virtual object (e.g., a box) to place on the detected surface
-//        let box = SCNBox(width: 0.2, height: 0.2, length: 0.2, chamferRadius: 0)
-//        
-//        let material = SCNMaterial()
-//        material.diffuse.contents = UIColor.blue // Set the color of the box
-//        box.materials = [material]
-//        
-//        // Create a node for the box
-//        let boxNode = SCNNode(geometry: box)
-//        
-//        // Position the box node on the plane anchor
-//        boxNode.position = SCNVector3(
-//            planeAnchor.center.x,
-//            0, // Assume the box's bottom should rest on the plane, hence y is 0
-//            planeAnchor.center.z)
-//        
-//        // Add the box node to the detected plane node
-//        node.addChildNode(boxNode)
-//    }
 
 }
 
@@ -62,36 +56,29 @@ extension SurgeryController: ARSessionDelegate {
 
 extension SurgeryController: SurgeryModelDelegate {
     
+    /// Creates the ARSCNView used to show the camera and added scenery
     func getARView() -> ARSCNView {
         if let arView = self.sceneView {
             logger.warning("ARView was previously created.  Returning that.")
             return arView
         }
         let sceneView = ARSCNView()
-        sceneView.debugOptions = [.showWorldOrigin]
+        sceneView.debugOptions = [
+            .showWorldOrigin,
+        ]
         sceneView.delegate = self
-        sceneView.showsStatistics = true // show fps and timing info
-        sceneView.automaticallyUpdatesLighting = true // automatic lighting
         
         let scene = SCNScene()
         sceneView.scene = scene
         
         self.scene = scene
         self.sceneView = sceneView
-        logger.info("Running AR session")
-  
-        let arConfiguration = ARWorldTrackingConfiguration()
-        // arConfiguration.worldAlignment = .gravity
-        arConfiguration.frameSemantics.insert(.sceneDepth)
-        arConfiguration.planeDetection = .horizontal
-//        arConfiguration.frameSemantics.insert(.bodyDetection)
-
-        sceneView.session.delegate = self
-        sceneView.session.run(arConfiguration)
+        startSession()
         
         return sceneView
     }
 
+    /// Adds something to the real-world location from the point tapped on the sceneView
     func addSomething(point: CGPoint) throws {
         guard let sceneView = sceneView else {
             logger.error("sceneView didn't exist")

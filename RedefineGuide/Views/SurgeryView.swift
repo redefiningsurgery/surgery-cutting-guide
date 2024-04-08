@@ -10,6 +10,9 @@ struct SurgeryView: View {
                 .onTapGesture { location in
                     model.onTap(point: location)
                 }
+            Button("Reset Center") {
+                model.resetWorldOrigin()
+            }
         }
     }
 }

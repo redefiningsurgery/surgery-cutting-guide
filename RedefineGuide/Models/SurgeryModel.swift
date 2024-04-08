@@ -21,10 +21,15 @@ class SurgeryModel: NSObject, ObservableObject {
         }
     }
     
+    func resetWorldOrigin() {
+        delegate?.resetWorldOrigin()
+    }
+    
 }
 
 
 protocol SurgeryModelDelegate: AnyObject {
     func getARView() -> ARSCNView
+    func resetWorldOrigin()
     func addSomething(point: CGPoint) throws
 }
