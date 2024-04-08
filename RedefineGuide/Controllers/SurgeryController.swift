@@ -2,7 +2,7 @@ import SwiftUI
 import SceneKit
 import ARKit
 
-class ARViewController: NSObject {
+class SurgeryController: NSObject {
 
     let model: SurgeryModel
     private var logger = RedefineLogger("ARViewController")
@@ -22,7 +22,7 @@ class ARViewController: NSObject {
     }
 }
 
-extension ARViewController: ARSCNViewDelegate {
+extension SurgeryController: ARSCNViewDelegate {
 
     /// temporary functionality to add a box to each newly detected plane
 //    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
@@ -52,7 +52,7 @@ extension ARViewController: ARSCNViewDelegate {
 
 }
 
-extension ARViewController: ARSessionDelegate {
+extension SurgeryController: ARSessionDelegate {
     /// Called every time the ARFrame is updated
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         // frame.sceneDepth?.depthMap
@@ -60,7 +60,7 @@ extension ARViewController: ARSessionDelegate {
 }
 
 
-extension ARViewController: SurgeryModelDelegate {
+extension SurgeryController: SurgeryModelDelegate {
     
     func getARView() -> ARSCNView {
         if let arView = self.sceneView {

@@ -26,7 +26,7 @@
 		973AEF332BBFAC3F0083CBED /* AppInitializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF322BBFAC3F0083CBED /* AppInitializer.swift */; };
 		973AEF352BBFAC6E0083CBED /* AppInitializationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF342BBFAC6E0083CBED /* AppInitializationModel.swift */; };
 		973AEF372BBFB0250083CBED /* Centered.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF362BBFB0250083CBED /* Centered.swift */; };
-		973AEF392BBFB3670083CBED /* ARViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF382BBFB3670083CBED /* ARViewController.swift */; };
+		973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF382BBFB3670083CBED /* SurgeryController.swift */; };
 		973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3A2BC433EE0083CBED /* SurgeryView.swift */; };
 		973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3E2BC456A20083CBED /* SurgeryModel.swift */; };
 /* End PBXBuildFile section */
@@ -72,7 +72,7 @@
 		973AEF322BBFAC3F0083CBED /* AppInitializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInitializer.swift; sourceTree = "<group>"; };
 		973AEF342BBFAC6E0083CBED /* AppInitializationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInitializationModel.swift; sourceTree = "<group>"; };
 		973AEF362BBFB0250083CBED /* Centered.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Centered.swift; sourceTree = "<group>"; };
-		973AEF382BBFB3670083CBED /* ARViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARViewController.swift; sourceTree = "<group>"; };
+		973AEF382BBFB3670083CBED /* SurgeryController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryController.swift; sourceTree = "<group>"; };
 		973AEF3A2BC433EE0083CBED /* SurgeryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryView.swift; sourceTree = "<group>"; };
 		973AEF3E2BC456A20083CBED /* SurgeryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -172,7 +172,7 @@
 			isa = PBXGroup;
 			children = (
 				973AEF322BBFAC3F0083CBED /* AppInitializer.swift */,
-				973AEF382BBFB3670083CBED /* ARViewController.swift */,
+				973AEF382BBFB3670083CBED /* SurgeryController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -339,7 +339,7 @@
 				973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */,
 				973AEF332BBFAC3F0083CBED /* AppInitializer.swift in Sources */,
 				973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */,
-				973AEF392BBFB3670083CBED /* ARViewController.swift in Sources */,
+				973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */,
 				973AEF172BBF41B40083CBED /* Logging.swift in Sources */,
 				973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */,
 				973AEF192BBF41E20083CBED /* Helpers.swift in Sources */,
