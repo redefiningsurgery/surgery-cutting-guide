@@ -127,30 +127,4 @@ extension ARViewController: SurgeryModelDelegate {
             logger.warning("No hit result")
         }
     }
-    
-    func addModel(_ name: String) throws {
-        guard let arView = sceneView else {
-            throw logger.logAndGetError("ARView didn't exist so model can't be added")
-        }
-        
-        guard let modelURL = Bundle.main.url(forResource: name, withExtension: "usdz") else {
-            throw logger.logAndGetError("Could not find model file for \(name)")
-        }
-        
-        let modelNode = SCNNode()
-        let modelScene = try SCNScene(url: modelURL, options: nil)
-        for child in modelScene.rootNode.childNodes {
-            modelNode.addChildNode(child)
-        }
-        
-        modelNode.scale = SCNVector3(0.01, 0.01, 0.01)
-
-        if let cameraNode = arView.pointOfView {
-            modelNode.position = SCNVector3(cameraNode.position.x, cameraNode.position.y, cameraNode.position.z - 1) // Adjust as needed
-        }
-
-        arView.scene.rootNode.addChildNode(modelNode)
-        
-        logger.info("Added model")
-    }
 }

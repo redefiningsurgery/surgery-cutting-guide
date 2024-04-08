@@ -28,7 +28,6 @@
 		973AEF372BBFB0250083CBED /* Centered.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF362BBFB0250083CBED /* Centered.swift */; };
 		973AEF392BBFB3670083CBED /* ARViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF382BBFB3670083CBED /* ARViewController.swift */; };
 		973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3A2BC433EE0083CBED /* SurgeryView.swift */; };
-		973AEF3D2BC43C6E0083CBED /* teapot.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 973AEF3C2BC43C6E0083CBED /* teapot.usdz */; };
 		973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3E2BC456A20083CBED /* SurgeryModel.swift */; };
 /* End PBXBuildFile section */
 
@@ -75,7 +74,6 @@
 		973AEF362BBFB0250083CBED /* Centered.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Centered.swift; sourceTree = "<group>"; };
 		973AEF382BBFB3670083CBED /* ARViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARViewController.swift; sourceTree = "<group>"; };
 		973AEF3A2BC433EE0083CBED /* SurgeryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryView.swift; sourceTree = "<group>"; };
-		973AEF3C2BC43C6E0083CBED /* teapot.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = teapot.usdz; sourceTree = "<group>"; };
 		973AEF3E2BC456A20083CBED /* SurgeryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -128,7 +126,6 @@
 			isa = PBXGroup;
 			children = (
 				973AEF232BBFA6610083CBED /* Info.plist */,
-				973AEF3C2BC43C6E0083CBED /* teapot.usdz */,
 				973AEF282BBFA9FA0083CBED /* AsyncQueueProcessor.swift */,
 				973AEF2E2BBFAA6F0083CBED /* Constants.swift */,
 				973AEF182BBF41E20083CBED /* Helpers.swift */,
@@ -305,7 +302,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				973AEF3D2BC43C6E0083CBED /* teapot.usdz in Resources */,
 				973AEEF42BBF3FF90083CBED /* Preview Assets.xcassets in Resources */,
 				973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */,
 			);
