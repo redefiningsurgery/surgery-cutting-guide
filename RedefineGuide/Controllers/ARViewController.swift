@@ -107,27 +107,43 @@ extension ARViewController: SurgeryModelDelegate {
         // Check if the raycast found a surface
         if let firstResult = results.first {
             // Create a new SCNBox (a 3D box)
-            let boxGeometry = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.0)
-            let material = SCNMaterial()
-            material.diffuse.contents = UIColor.blue // Example: Set the box color to blue
-            boxGeometry.materials = [material]
             
-            let boxNode = SCNNode(geometry: boxGeometry)
+            let modelNode = try getModel().rootNode
+            modelNode.scale = SCNVector3(0.01, 0.01, 0.01)
+            
+            modelNode.position = SCNVector3(firstResult.worldTransform.columns.3.x, firstResult.worldTransform.columns.3.y + 0.1, firstResult.worldTransform.columns.3.z) // Adjust Y offset as needed
+
+//            let boxGeometry = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.0)
+//            let material = SCNMaterial()
+//            material.diffuse.contents = UIColor.blue // Example: Set the box color to blue
+//            boxGeometry.materials = [material]
+            
+//            let boxNode = SCNNode(geometry: boxGeometry)
+            
+//            modelNode.geometry = boxGeometry
             
             // Set the position of the boxNode using the firstResult's worldTransform
-            boxNode.simdTransform = firstResult.worldTransform
+            modelNode.simdTransform = firstResult.worldTransform
             
             // Adjust Y position to make the box sit on the plane
-            boxNode.position.y += Float(boxGeometry.height / 2)
-            
+//            modelNode.position.y += Float(boxGeometry.height / 2)
+
             // Add the box node to the scene
-            sceneView.scene.rootNode.addChildNode(boxNode)
+            sceneView.scene.rootNode.addChildNode(modelNode)
             logger.info("Added box")
         } else {
             logger.warning("No hit result")
         }
     }
     
+    func getModel() throws -> SCNScene {
+        guard let modelURL = Bundle.main.url(forResource: "teapot", withExtension: "usdz") else {
+            throw logger.logAndGetError("Could not find model file")
+        }
+        let modelScene = try SCNScene(url: modelURL, options: nil)
+        return modelScene
+    }
+
     func addModel(_ name: String) throws {
         guard let arView = sceneView else {
             throw logger.logAndGetError("ARView didn't exist so model can't be added")
