@@ -4,15 +4,21 @@ import ARKit
 class SurgeryModel: NSObject, ObservableObject {
 
     @Published var showLeadingCube = false
-    
+
     var delegate: SurgeryModelDelegate? = nil
-    private var logger = RedefineLogger("ARViewController")
+    private var logger = RedefineLogger("SurgeryModel")
 
     func getARView() -> ARSCNView {
-        if delegate == nil {
-            logger.warning("SurgeryModel delegate is nil")
+        guard let delegate = delegate else {
+            logger.warning("Cannot get ARView because delegate is nil")
+            return ARSCNView()
         }
-        return delegate?.getARView() ?? ARSCNView()
+        do {
+            return try delegate.getARView()
+        } catch {
+            logger.error("Error getting ARView: \(error.localizedDescription)")
+            return ARSCNView()
+        }
     }
     
     func onTap(point: CGPoint) {
@@ -24,14 +30,22 @@ class SurgeryModel: NSObject, ObservableObject {
     }
     
     func resetWorldOrigin() {
-        delegate?.resetWorldOrigin()
+        guard let delegate = delegate else {
+            logger.warning("resetWorldOrigin did nothing because delegate is nil")
+            return
+        }
+        do {
+            try delegate.resetWorldOrigin()
+        } catch {
+            logger.error("Error resetWorldOrigin: \(error.localizedDescription)")
+        }
     }
     
 }
 
 
 protocol SurgeryModelDelegate: AnyObject {
-    func getARView() -> ARSCNView
-    func resetWorldOrigin()
+    func getARView() throws -> ARSCNView
+    func resetWorldOrigin() throws
     func addSomething(point: CGPoint) throws
 }

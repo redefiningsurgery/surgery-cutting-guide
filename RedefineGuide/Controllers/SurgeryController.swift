@@ -6,7 +6,7 @@ import Combine
 class SurgeryController: NSObject {
 
     let model: SurgeryModel
-    private var logger = RedefineLogger("ARViewController")
+    private var logger = RedefineLogger("SurgeryController")
     private var sceneView: ARSCNView? = nil
     private var scene: SCNScene? = nil
     private var leadingCube: SCNNode?
@@ -20,7 +20,6 @@ class SurgeryController: NSObject {
         model.delegate = self
         showCubeSubscription = model.$showLeadingCube
             .sink { [weak self] newValue in
-                print("showCube changed to \(newValue)")
                 self?.handleShowCubeChanged(newValue)
             }
     }
@@ -41,23 +40,21 @@ class SurgeryController: NSObject {
         logger.info("Stopped AR session")
     }
     
-    func resetWorldOrigin() {
-        pause()
-        startSession()
-    }
+    private var adjustedWorldOrigin = false
     
-    private func startSession() {
+    private func startSession() throws {
         guard let sceneView = sceneView else {
-            logger.error("No sceneView.  Cannot start ARSession")
-            return
+            throw logger.logAndGetError("No sceneView.  Cannot start ARSession")
         }
-        let arConfiguration = ARWorldTrackingConfiguration()
-        arConfiguration.frameSemantics.insert(.sceneDepth)
-        arConfiguration.planeDetection = .horizontal
-        arConfiguration.isAutoFocusEnabled = true
+        adjustedWorldOrigin = false
+        let configuration = ARWorldTrackingConfiguration()
+        configuration.frameSemantics.insert(.sceneDepth)
+        // https://developer.apple.com/documentation/arkit/arkit_in_ios/content_anchors/scanning_and_detecting_3d_objects
+        configuration.planeDetection = .horizontal
+        configuration.isAutoFocusEnabled = true
 
         sceneView.session.delegate = self
-        sceneView.session.run(arConfiguration, options: [.resetTracking])
+        sceneView.session.run(configuration, options: [.resetTracking])
         logger.info("Started AR session")
     }
 }
@@ -70,12 +67,37 @@ extension SurgeryController: ARSCNViewDelegate {
             }
         }
     }
+    
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        logger.trace("ARAnchor added: \(type(of: anchor))")
+    }
+
 }
 
 extension SurgeryController: ARSessionDelegate {
     /// Called every time the ARFrame is updated
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         // frame.sceneDepth?.depthMap
+        
+        // if this is the first frame in the session, adjust the world origin so the center is slightly in front of the phone
+        if !adjustedWorldOrigin {
+            adjustedWorldOrigin = true
+            
+            DispatchQueue.main.async {
+                // Get the current orientation of the device in terms of camera transform
+                let currentTransform = frame.camera.transform
+
+                // Define the desired shift and rotation
+                let desiredShiftAndRotation = simd_make_float4x4(translation: [-0.0, -0.0, -0.5], rotation: (pitch: 0, yaw: 0, roll: 0))
+
+                // Combine the current orientation with the desired transformation
+                let combinedTransform = simd_mul(currentTransform, desiredShiftAndRotation)
+
+                // Apply the combined transformation as the new world origin
+                session.setWorldOrigin(relativeTransform: combinedTransform)
+                self.logger.trace("Adjusted world origin")
+            }
+        }
     }
 }
 
@@ -83,7 +105,7 @@ extension SurgeryController: ARSessionDelegate {
 extension SurgeryController: SurgeryModelDelegate {
     
     /// Creates the ARSCNView used to show the camera and added scenery
-    func getARView() -> ARSCNView {
+    func getARView() throws -> ARSCNView {
         if let sceneView = self.sceneView {
             logger.warning("sceneView was previously created.  Returning that.")
             return sceneView
@@ -92,6 +114,8 @@ extension SurgeryController: SurgeryModelDelegate {
         sceneView.automaticallyUpdatesLighting = true
         sceneView.debugOptions = [
             .showWorldOrigin,
+            // show the feature points that ARKit uses for tracking https://developer.apple.com/documentation/arkit/arframe/2887449-rawfeaturepoints
+            .showFeaturePoints,
         ]
         sceneView.delegate = self
         
@@ -100,13 +124,18 @@ extension SurgeryController: SurgeryModelDelegate {
         
         self.scene = scene
         self.sceneView = sceneView
-        startSession()
+        try startSession()
      
         if model.showLeadingCube {
             addLeadingCube()
         }
         
         return sceneView
+    }
+    
+    func resetWorldOrigin() throws {
+        pause()
+        try startSession()
     }
     
     func addLeadingCube() {
@@ -211,4 +240,32 @@ extension SCNVector3 {
     static func *(vector: SCNVector3, scalar: Float) -> SCNVector3 {
         return SCNVector3(vector.x * scalar, vector.y * scalar, vector.z * scalar)
     }
+}
+
+
+// Helper function to create a combined rotation and translation matrix
+func simd_make_float4x4(translation: SIMD3<Float>, rotation: (pitch: Float, yaw: Float, roll: Float)) -> matrix_float4x4 {
+    let rotationX = makeRotationMatrix(axis: SIMD3<Float>(1, 0, 0), angle: rotation.pitch)
+    let rotationY = makeRotationMatrix(axis: SIMD3<Float>(0, 1, 0), angle: rotation.yaw)
+    let rotationZ = makeRotationMatrix(axis: SIMD3<Float>(0, 0, 1), angle: rotation.roll)
+
+    let rotationMatrix = simd_mul(simd_mul(rotationX, rotationY), rotationZ)
+
+    var translationMatrix = matrix_identity_float4x4
+    translationMatrix.columns.3 = SIMD4<Float>(translation.x, translation.y, translation.z, 1)
+
+    return simd_mul(rotationMatrix, translationMatrix)
+}
+
+// Create a rotation matrix around an axis by an angle to avoid conflict
+func makeRotationMatrix(axis: SIMD3<Float>, angle: Float) -> matrix_float4x4 {
+    let c = cos(angle)
+    let s = sin(angle)
+
+    let column0 = SIMD4<Float>(c + pow(axis.x, 2) * (1 - c), axis.x * axis.y * (1 - c) - axis.z * s, axis.x * axis.z * (1 - c) + axis.y * s, 0)
+    let column1 = SIMD4<Float>(axis.y * axis.x * (1 - c) + axis.z * s, c + pow(axis.y, 2) * (1 - c), axis.y * axis.z * (1 - c) - axis.x * s, 0)
+    let column2 = SIMD4<Float>(axis.z * axis.x * (1 - c) - axis.y * s, axis.z * axis.y * (1 - c) + axis.x * s, c + pow(axis.z, 2) * (1 - c), 0)
+    let column3 = SIMD4<Float>(0, 0, 0, 1)
+
+    return matrix_float4x4(columns: (column0, column1, column2, column3))
 }
