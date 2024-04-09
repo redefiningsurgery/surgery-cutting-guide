@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		024E22A62BC5BC3C00650C2A /* backup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024E22A52BC5BC3C00650C2A /* backup.swift */; };
 		973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */; };
 		973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEE2BBF3FF70083CBED /* RootView.swift */; };
 		973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 973AEEF02BBF3FF90083CBED /* Assets.xcassets */; };
@@ -49,6 +50,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		024E22A52BC5BC3C00650C2A /* backup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = backup.swift; sourceTree = "<group>"; };
 		973AEEE92BBF3FF70083CBED /* RedefineGuide.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RedefineGuide.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedefineGuideApp.swift; sourceTree = "<group>"; };
 		973AEEEE2BBF3FF70083CBED /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -105,6 +107,7 @@
 		973AEEE02BBF3FF70083CBED = {
 			isa = PBXGroup;
 			children = (
+				024E22A52BC5BC3C00650C2A /* backup.swift */,
 				973AEEEB2BBF3FF70083CBED /* RedefineGuide */,
 				973AEEFC2BBF3FF90083CBED /* RedefineGuideTests */,
 				973AEF062BBF3FF90083CBED /* RedefineGuideUITests */,
@@ -329,6 +332,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				973AEF2D2BBFAA080083CBED /* ThreadSafeQueue.swift in Sources */,
+				024E22A62BC5BC3C00650C2A /* backup.swift in Sources */,
 				973AEF2F2BBFAA6F0083CBED /* Constants.swift in Sources */,
 				973AEF1B2BBF42390083CBED /* LifecycleEventMonitor.swift in Sources */,
 				973AEF352BBFAC6E0083CBED /* AppInitializationModel.swift in Sources */,
@@ -508,7 +512,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"RedefineGuide/Preview Content\"";
-				DEVELOPMENT_TEAM = C47Q8A6352;
+				DEVELOPMENT_TEAM = 2B3Y82HJ87;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RedefineGuide/Info.plist;
@@ -524,7 +528,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.guide.dev;
+				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.guide.dev.abed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -540,11 +544,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"RedefineGuide/Preview Content\"";
-				DEVELOPMENT_TEAM = FUP9L59XCD;
+				DEVELOPMENT_TEAM = 2B3Y82HJ87;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RedefineGuide/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "RS Guide";
+				INFOPLIST_KEY_CFBundleDisplayName = "RS Guide Dev";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For overlaying guides over camera scenes";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -556,7 +560,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.guide;
+				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.guide.abed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

@@ -13,17 +13,24 @@ struct SurgeryView: View {
             HStack {
                 Toggle(isOn: $model.showLeadingCube) {
                     Text("Show Leading Cube")
-                      .frame(maxWidth: .infinity, alignment: .trailing)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                 }
                 Spacer()
                 Button("Reset Center") {
                     model.resetWorldOrigin()
                 }
+                Button("Scan") {
+
+                }
             }
+            .padding() // Add padding for better spacing and layout
         }
     }
 }
 
-#Preview {
-    return SurgeryView(model: SurgeryModel())
+// Preview Provider
+struct SurgeryView_Previews: PreviewProvider {
+    static var previews: some View {
+        SurgeryView(model: SurgeryModel())
+    }
 }
