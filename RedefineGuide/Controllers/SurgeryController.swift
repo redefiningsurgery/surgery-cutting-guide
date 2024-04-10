@@ -191,7 +191,16 @@ extension SurgeryController: SurgeryModelDelegate {
         let forward = SCNVector3(-transform.columns.2.x, -transform.columns.2.y, -transform.columns.2.z)
         let adjustedForward = forward.normalized() * 0.5 // Adjust to be 0.5 meters in front
         
-        overlayModel.position = cameraPosition + adjustedForward
+        overlayModel.position =  adjustedForward + cameraPosition
+
+        let cameraTransform = currentFrame.camera.transform
+        let simdQuaternion = simd_quaternion(cameraTransform)
+
+        // Convert simd_quatf (quaternion) to SCNQuaternion (or SCNVector4)
+        let scnQuaternion = SCNQuaternion(simdQuaternion.vector.x, simdQuaternion.vector.y, simdQuaternion.vector.z, simdQuaternion.vector.w)
+
+        // Assign the converted quaternion to your node
+        overlayModel.orientation = scnQuaternion
     }
     
     func removeOverlayModel() {
