@@ -67,9 +67,7 @@ class SurgeryController: NSObject {
         let modelAsset = MDLAsset(url: modelURL)
         modelAsset.loadTextures()
         let modelObject = modelAsset.object(at: 0)
-        let modelNode = SCNNode(mdlObject: modelObject)
-        modelNode.scale = SCNVector3(0.01, 0.01, 0.01) // we will have to figure out how to adjust this with real bone models
-        return modelNode
+        return SCNNode(mdlObject: modelObject)
     }
 }
 
@@ -159,7 +157,13 @@ extension SurgeryController: SurgeryModelDelegate {
         }
 
         do {
-            let modelNode = try loadModel("saucer") // not sure why but this is causing the UI thread to pause.  but it's running in the background
+            let modelNode = try loadModel("bone") // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
+            modelNode.scaleToWidth(20)
+            // make it translucent
+            modelNode.opacity = 0.5
+            // rotate the model up
+            modelNode.rotate(x: 90, y: 90, z: 0)
+
             overlayNode = modelNode // Store the reference
             updateOverlayModelPosition()
             scene.rootNode.addChildNode(modelNode)
@@ -187,7 +191,6 @@ extension SurgeryController: SurgeryModelDelegate {
         let forward = SCNVector3(-transform.columns.2.x, -transform.columns.2.y, -transform.columns.2.z)
         let adjustedForward = forward.normalized() * 0.5 // Adjust to be 0.5 meters in front
         
-        // Update the Overlay's position to be 0.5 meters in front of the camera
         overlayModel.position = cameraPosition + adjustedForward
     }
     
@@ -234,22 +237,6 @@ extension SurgeryController: SurgeryModelDelegate {
         }
     }
 }
-
-extension SCNVector3 {
-    func normalized() -> SCNVector3 {
-        let length = sqrt(x * x + y * y + z * z)
-        return SCNVector3(x / length, y / length, z / length)
-    }
-    
-    static func +(lhs: SCNVector3, rhs: SCNVector3) -> SCNVector3 {
-        return SCNVector3(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z)
-    }
-    
-    static func *(vector: SCNVector3, scalar: Float) -> SCNVector3 {
-        return SCNVector3(vector.x * scalar, vector.y * scalar, vector.z * scalar)
-    }
-}
-
 
 // Helper function to create a combined rotation and translation matrix
 func simd_make_float4x4(translation: SIMD3<Float>, rotation: (pitch: Float, yaw: Float, roll: Float)) -> matrix_float4x4 {

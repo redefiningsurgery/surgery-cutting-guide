@@ -29,7 +29,8 @@
 		973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF382BBFB3670083CBED /* SurgeryController.swift */; };
 		973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3A2BC433EE0083CBED /* SurgeryView.swift */; };
 		973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3E2BC456A20083CBED /* SurgeryModel.swift */; };
-		977429DB2BC6F5C80069F4BA /* saucer.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 977429DA2BC6F5C80069F4BA /* saucer.usdz */; };
+		977429E92BC707BD0069F4BA /* bone.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 977429E82BC707BD0069F4BA /* bone.usdz */; };
+		977429EE2BC70D9C0069F4BA /* SceneKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,7 +77,8 @@
 		973AEF382BBFB3670083CBED /* SurgeryController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryController.swift; sourceTree = "<group>"; };
 		973AEF3A2BC433EE0083CBED /* SurgeryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryView.swift; sourceTree = "<group>"; };
 		973AEF3E2BC456A20083CBED /* SurgeryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryModel.swift; sourceTree = "<group>"; };
-		977429DA2BC6F5C80069F4BA /* saucer.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = saucer.usdz; sourceTree = "<group>"; };
+		977429E82BC707BD0069F4BA /* bone.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = bone.usdz; sourceTree = "<group>"; };
+		977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneKitExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,8 +139,9 @@
 				973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */,
 				973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */,
 				973AEEF02BBF3FF90083CBED /* Assets.xcassets */,
-				977429DA2BC6F5C80069F4BA /* saucer.usdz */,
+				977429E82BC707BD0069F4BA /* bone.usdz */,
 				973AEF1C2BBF425B0083CBED /* Controllers */,
+				977429EC2BC70D850069F4BA /* Extensions */,
 				973AEF1E2BBF42670083CBED /* Models */,
 				973AEEF22BBF3FF90083CBED /* Preview Content */,
 				973AEF1D2BBF42610083CBED /* Views */,
@@ -199,6 +202,14 @@
 				973AEF3E2BC456A20083CBED /* SurgeryModel.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		977429EC2BC70D850069F4BA /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -306,8 +317,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				973AEEF42BBF3FF90083CBED /* Preview Assets.xcassets in Resources */,
-				977429DB2BC6F5C80069F4BA /* saucer.usdz in Resources */,
 				973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */,
+				977429E92BC707BD0069F4BA /* bone.usdz in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -343,6 +354,7 @@
 				973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */,
 				973AEF332BBFAC3F0083CBED /* AppInitializer.swift in Sources */,
 				973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */,
+				977429EE2BC70D9C0069F4BA /* SceneKitExtensions.swift in Sources */,
 				973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */,
 				973AEF172BBF41B40083CBED /* Logging.swift in Sources */,
 				973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */,
