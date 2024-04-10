@@ -3,7 +3,7 @@ import ARKit
 
 class SurgeryModel: NSObject, ObservableObject {
 
-    @Published var showLeadingCube = false
+    @Published var showOverlay = false
 
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")

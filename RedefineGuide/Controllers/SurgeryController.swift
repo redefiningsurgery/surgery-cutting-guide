@@ -1,5 +1,6 @@
 import SwiftUI
 import SceneKit
+import SceneKit.ModelIO
 import ARKit
 import Combine
 
@@ -9,8 +10,8 @@ class SurgeryController: NSObject {
     private var logger = RedefineLogger("SurgeryController")
     private var sceneView: ARSCNView? = nil
     private var scene: SCNScene? = nil
-    private var leadingCube: SCNNode?
-    private var showCubeSubscription: AnyCancellable?
+    private var overlayNode: SCNNode?
+    private var showOverlaySubscription: AnyCancellable?
 
     override init() {
         model = SurgeryModel()
@@ -18,20 +19,20 @@ class SurgeryController: NSObject {
         super.init()
 
         model.delegate = self
-        showCubeSubscription = model.$showLeadingCube
+        showOverlaySubscription = model.$showOverlay
             .sink { [weak self] newValue in
-                self?.handleShowCubeChanged(newValue)
+                self?.handleShowOverlayChanged(newValue)
             }
     }
     
-    private func handleShowCubeChanged(_ show: Bool) {
+    private func handleShowOverlayChanged(_ show: Bool) {
         guard sceneView != nil else {
             return
         }
         if show {
-            addLeadingCube()
+            addOverlayModel()
         } else {
-            removeLeadingCube()
+            removeOverlayModel()
         }
     }
     
@@ -57,13 +58,26 @@ class SurgeryController: NSObject {
         sceneView.session.run(configuration, options: [.resetTracking])
         logger.info("Started AR session")
     }
+
+    /// Loads the given usdz file into a SCNNode.  Note that this should be processed on a background thread, as it is resource intensive and would cause the UI thread to pause
+    private func loadModel(_ name: String) throws -> SCNNode {
+        guard let modelURL = Bundle.main.url(forResource: name, withExtension: "usdz") else {
+            throw logger.logAndGetError("Could not find model file for \(name)")
+        }
+        let modelAsset = MDLAsset(url: modelURL)
+        modelAsset.loadTextures()
+        let modelObject = modelAsset.object(at: 0)
+        let modelNode = SCNNode(mdlObject: modelObject)
+        modelNode.scale = SCNVector3(0.01, 0.01, 0.01) // we will have to figure out how to adjust this with real bone models
+        return modelNode
+    }
 }
 
 extension SurgeryController: ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         DispatchQueue.main.async {
-            if self.leadingCube != nil {
-                self.updateCubePosition()
+            if self.overlayNode != nil {
+                self.updateOverlayModelPosition()
             }
         }
     }
@@ -126,8 +140,8 @@ extension SurgeryController: SurgeryModelDelegate {
         self.sceneView = sceneView
         try startSession()
      
-        if model.showLeadingCube {
-            addLeadingCube()
+        if model.showOverlay {
+            addOverlayModel()
         }
         
         return sceneView
@@ -138,36 +152,30 @@ extension SurgeryController: SurgeryModelDelegate {
         try startSession()
     }
     
-    func addLeadingCube() {
-        // If the cube node already exists, just update its position
-        if leadingCube != nil {
-            updateCubePosition()
+    func addOverlayModel() {
+        guard overlayNode == nil, let scene = scene else {
+            logger.error("addOverlayModel called but overlayModel already existed or scene was missing")
             return
         }
-        // Otherwise, create a new cube node and add it to the scene
-        let cubeGeometry = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0)
-        let material = SCNMaterial()
-        // Apply a texture
-        material.diffuse.contents = UIImage(named: "wood-texture")
-        // Make the material slightly translucent
-        material.transparency = 0.5
-        // Apply the material to all sides of the cube
-        cubeGeometry.materials = [material, material, material, material, material, material]
 
-        let newNode = SCNNode(geometry: cubeGeometry)
-        leadingCube = newNode // Store the reference
-        sceneView!.scene.rootNode.addChildNode(newNode)
-        
-        updateCubePosition()
+        do {
+            let modelNode = try loadModel("saucer") // not sure why but this is causing the UI thread to pause.  but it's running in the background
+            overlayNode = modelNode // Store the reference
+            updateOverlayModelPosition()
+            scene.rootNode.addChildNode(modelNode)
+            logger.info("Added model to scene")
+        } catch {
+            logger.error("Could not add leading model: \(error.localizedDescription)")
+        }
     }
 
-    func updateCubePosition() {
+    func updateOverlayModelPosition() {
         guard let currentFrame = sceneView?.session.currentFrame else {
-            logger.warning("Could not get current ARFrame to update position of cube")
+            logger.warning("Could not get current ARFrame to update position of Overlay")
             return
         }
-        guard let leadingCube = leadingCube else {
-            logger.warning("No leading cube to update position for")
+        guard let overlayModel = overlayNode else {
+            logger.warning("No leading Overlay to update position for")
             return
         }
         
@@ -179,13 +187,13 @@ extension SurgeryController: SurgeryModelDelegate {
         let forward = SCNVector3(-transform.columns.2.x, -transform.columns.2.y, -transform.columns.2.z)
         let adjustedForward = forward.normalized() * 0.5 // Adjust to be 0.5 meters in front
         
-        // Update the cube's position to be 0.5 meters in front of the camera
-        leadingCube.position = cameraPosition + adjustedForward
+        // Update the Overlay's position to be 0.5 meters in front of the camera
+        overlayModel.position = cameraPosition + adjustedForward
     }
     
-    func removeLeadingCube() {
-        leadingCube?.removeFromParentNode()
-        leadingCube = nil
+    func removeOverlayModel() {
+        overlayNode?.removeFromParentNode()
+        overlayNode = nil
     }
     
     /// Adds something to the real-world location from the point tapped on the sceneView
@@ -269,3 +277,5 @@ func makeRotationMatrix(axis: SIMD3<Float>, angle: Float) -> matrix_float4x4 {
 
     return matrix_float4x4(columns: (column0, column1, column2, column3))
 }
+
+

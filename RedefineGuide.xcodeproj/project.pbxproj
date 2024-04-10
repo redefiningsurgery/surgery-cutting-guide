@@ -29,6 +29,7 @@
 		973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF382BBFB3670083CBED /* SurgeryController.swift */; };
 		973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3A2BC433EE0083CBED /* SurgeryView.swift */; };
 		973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3E2BC456A20083CBED /* SurgeryModel.swift */; };
+		977429DB2BC6F5C80069F4BA /* saucer.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 977429DA2BC6F5C80069F4BA /* saucer.usdz */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +76,7 @@
 		973AEF382BBFB3670083CBED /* SurgeryController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryController.swift; sourceTree = "<group>"; };
 		973AEF3A2BC433EE0083CBED /* SurgeryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryView.swift; sourceTree = "<group>"; };
 		973AEF3E2BC456A20083CBED /* SurgeryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryModel.swift; sourceTree = "<group>"; };
+		977429DA2BC6F5C80069F4BA /* saucer.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = saucer.usdz; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +137,7 @@
 				973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */,
 				973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */,
 				973AEEF02BBF3FF90083CBED /* Assets.xcassets */,
+				977429DA2BC6F5C80069F4BA /* saucer.usdz */,
 				973AEF1C2BBF425B0083CBED /* Controllers */,
 				973AEF1E2BBF42670083CBED /* Models */,
 				973AEEF22BBF3FF90083CBED /* Preview Content */,
@@ -303,6 +306,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				973AEEF42BBF3FF90083CBED /* Preview Assets.xcassets in Resources */,
+				977429DB2BC6F5C80069F4BA /* saucer.usdz in Resources */,
 				973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

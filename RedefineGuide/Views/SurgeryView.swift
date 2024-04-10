@@ -11,8 +11,8 @@ struct SurgeryView: View {
                     model.onTap(point: location)
                 }
             HStack {
-                Toggle(isOn: $model.showLeadingCube) {
-                    Text("Show Leading Cube")
+                Toggle(isOn: $model.showOverlay) {
+                    Text("Show Overlay")
                       .frame(maxWidth: .infinity, alignment: .trailing)
                 }
                 Spacer()
