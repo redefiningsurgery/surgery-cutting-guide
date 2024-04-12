@@ -21,14 +21,6 @@ class SurgeryModel: NSObject, ObservableObject {
         }
     }
     
-    func onTap(point: CGPoint) {
-        do {
-            try delegate?.addSomething(point: point)
-        } catch {
-            logger.error("Error adding something: \(error.localizedDescription)")
-        }
-    }
-    
     func resetWorldOrigin() {
         guard let delegate = delegate else {
             logger.warning("resetWorldOrigin did nothing because delegate is nil")
@@ -47,5 +39,4 @@ class SurgeryModel: NSObject, ObservableObject {
 protocol SurgeryModelDelegate: AnyObject {
     func getARView() throws -> ARSCNView
     func resetWorldOrigin() throws
-    func addSomething(point: CGPoint) throws
 }
