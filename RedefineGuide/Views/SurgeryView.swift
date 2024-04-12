@@ -7,9 +7,6 @@ struct SurgeryView: View {
     var body: some View {
         VStack {
             ARViewContainer(model: model)
-                .onTapGesture { location in
-                    model.onTap(point: location)
-                }
             HStack {
                 Toggle(isOn: $model.showOverlay) {
                     Text("Show Overlay")

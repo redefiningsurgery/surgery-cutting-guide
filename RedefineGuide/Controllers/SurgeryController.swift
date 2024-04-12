@@ -69,6 +69,64 @@ class SurgeryController: NSObject {
         let modelObject = modelAsset.object(at: 0)
         return SCNNode(mdlObject: modelObject)
     }
+    
+    func addOverlayModel() {
+        guard overlayNode == nil, let scene = scene else {
+            logger.error("addOverlayModel called but overlayModel already existed or scene was missing")
+            return
+        }
+
+        do {
+            let modelNode = try loadModel("bone") // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
+            modelNode.scaleToWidth(20)
+            // make it translucent
+            modelNode.opacity = 0.5
+            // rotate the model up
+            modelNode.rotate(x: 90, y: 90, z: 0)
+
+            overlayNode = modelNode // Store the reference
+            updateOverlayModelPosition()
+            scene.rootNode.addChildNode(modelNode)
+            logger.info("Added model to scene")
+        } catch {
+            logger.error("Could not add leading model: \(error.localizedDescription)")
+        }
+    }
+
+    func updateOverlayModelPosition() {
+        guard let currentFrame = sceneView?.session.currentFrame else {
+            logger.warning("Could not get current ARFrame to update position of Overlay")
+            return
+        }
+        guard let overlayModel = overlayNode else {
+            logger.warning("No leading Overlay to update position for")
+            return
+        }
+        
+        // Use the camera's transform to get its current orientation and position
+        let transform = currentFrame.camera.transform
+        let cameraPosition = SCNVector3(transform.columns.3.x, transform.columns.3.y, transform.columns.3.z)
+        
+        // Calculate the forward vector from the camera transform
+        let forward = SCNVector3(-transform.columns.2.x, -transform.columns.2.y, -transform.columns.2.z)
+        let adjustedForward = forward.normalized() * 0.5 // Adjust to be 0.5 meters in front
+        
+        overlayModel.position =  adjustedForward + cameraPosition
+
+        let cameraTransform = currentFrame.camera.transform
+        let simdQuaternion = simd_quaternion(cameraTransform)
+
+        // Convert simd_quatf (quaternion) to SCNQuaternion (or SCNVector4)
+        let scnQuaternion = SCNQuaternion(simdQuaternion.vector.x, simdQuaternion.vector.y, simdQuaternion.vector.z, simdQuaternion.vector.w)
+
+        // Assign the converted quaternion to your node
+        overlayModel.orientation = scnQuaternion
+    }
+    
+    func removeOverlayModel() {
+        overlayNode?.removeFromParentNode()
+        overlayNode = nil
+    }
 }
 
 extension SurgeryController: ARSCNViewDelegate {
@@ -148,102 +206,6 @@ extension SurgeryController: SurgeryModelDelegate {
     func resetWorldOrigin() throws {
         pause()
         try startSession()
-    }
-    
-    func addOverlayModel() {
-        guard overlayNode == nil, let scene = scene else {
-            logger.error("addOverlayModel called but overlayModel already existed or scene was missing")
-            return
-        }
-
-        do {
-            let modelNode = try loadModel("bone") // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
-            modelNode.scaleToWidth(20)
-            // make it translucent
-            modelNode.opacity = 0.5
-            // rotate the model up
-            modelNode.rotate(x: 90, y: 90, z: 0)
-
-            overlayNode = modelNode // Store the reference
-            updateOverlayModelPosition()
-            scene.rootNode.addChildNode(modelNode)
-            logger.info("Added model to scene")
-        } catch {
-            logger.error("Could not add leading model: \(error.localizedDescription)")
-        }
-    }
-
-    func updateOverlayModelPosition() {
-        guard let currentFrame = sceneView?.session.currentFrame else {
-            logger.warning("Could not get current ARFrame to update position of Overlay")
-            return
-        }
-        guard let overlayModel = overlayNode else {
-            logger.warning("No leading Overlay to update position for")
-            return
-        }
-        
-        // Use the camera's transform to get its current orientation and position
-        let transform = currentFrame.camera.transform
-        let cameraPosition = SCNVector3(transform.columns.3.x, transform.columns.3.y, transform.columns.3.z)
-        
-        // Calculate the forward vector from the camera transform
-        let forward = SCNVector3(-transform.columns.2.x, -transform.columns.2.y, -transform.columns.2.z)
-        let adjustedForward = forward.normalized() * 0.5 // Adjust to be 0.5 meters in front
-        
-        overlayModel.position =  adjustedForward + cameraPosition
-
-        let cameraTransform = currentFrame.camera.transform
-        let simdQuaternion = simd_quaternion(cameraTransform)
-
-        // Convert simd_quatf (quaternion) to SCNQuaternion (or SCNVector4)
-        let scnQuaternion = SCNQuaternion(simdQuaternion.vector.x, simdQuaternion.vector.y, simdQuaternion.vector.z, simdQuaternion.vector.w)
-
-        // Assign the converted quaternion to your node
-        overlayModel.orientation = scnQuaternion
-    }
-    
-    func removeOverlayModel() {
-        overlayNode?.removeFromParentNode()
-        overlayNode = nil
-    }
-    
-    /// Adds something to the real-world location from the point tapped on the sceneView
-    func addSomething(point: CGPoint) throws {
-        guard let sceneView = sceneView else {
-            logger.error("sceneView didn't exist")
-            return
-        }
-        
-        guard let query = sceneView.raycastQuery(from: point, allowing: .estimatedPlane, alignment: .horizontal) else {
-            return
-        }
-        
-        // Perform the raycast
-        let results = sceneView.session.raycast(query)
-        
-        // Check if the raycast found a surface
-        if let firstResult = results.first {
-            // Create a new SCNBox (a 3D box)
-            let boxGeometry = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.0)
-            let material = SCNMaterial()
-            material.diffuse.contents = UIColor.blue // Example: Set the box color to blue
-            boxGeometry.materials = [material]
-            
-            let boxNode = SCNNode(geometry: boxGeometry)
-            
-            // Set the position of the boxNode using the firstResult's worldTransform
-            boxNode.simdTransform = firstResult.worldTransform
-            
-            // Adjust Y position to make the box sit on the plane
-            boxNode.position.y += Float(boxGeometry.height / 2)
-            
-            // Add the box node to the scene
-            sceneView.scene.rootNode.addChildNode(boxNode)
-            logger.info("Added box")
-        } else {
-            logger.warning("No hit result")
-        }
     }
 }
 
