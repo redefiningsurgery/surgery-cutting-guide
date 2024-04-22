@@ -32,11 +32,23 @@ class SurgeryModel: NSObject, ObservableObject {
             logger.error("Error resetWorldOrigin: \(error.localizedDescription)")
         }
     }
-    
+
+    func saveFrame() async {
+        guard let delegate = delegate else {
+            logger.warning("saveFrame did nothing because delegate is nil")
+            return
+        }
+        do {
+            try await delegate.saveFrame()
+        } catch {
+            logger.error("Error saveFrame: \(error.localizedDescription)")
+        }
+    }
 }
 
 
 protocol SurgeryModelDelegate: AnyObject {
     func getARView() throws -> ARSCNView
     func resetWorldOrigin() throws
+    func saveFrame() async throws
 }

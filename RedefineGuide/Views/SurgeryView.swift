@@ -16,6 +16,11 @@ struct SurgeryView: View {
                 Button("Reset Center") {
                     model.resetWorldOrigin()
                 }
+                AsyncButton(action: {
+                    await model.saveFrame()
+                }, label: {
+                   Text("Save Frame")
+                })
             }
         }
     }

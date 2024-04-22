@@ -31,6 +31,9 @@
 		973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3E2BC456A20083CBED /* SurgeryModel.swift */; };
 		977429E92BC707BD0069F4BA /* bone.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 977429E82BC707BD0069F4BA /* bone.usdz */; };
 		977429EE2BC70D9C0069F4BA /* SceneKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */; };
+		97936C8F2BD6DDFF005930F4 /* DepthMapSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */; };
+		97936C9D2BD6DF9A005930F4 /* PngEncoder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 97936C9A2BD6DF9A005930F4 /* PngEncoder.mm */; };
+		97936C9E2BD6DF9A005930F4 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97936C9B2BD6DF9A005930F4 /* lodepng.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +82,12 @@
 		973AEF3E2BC456A20083CBED /* SurgeryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryModel.swift; sourceTree = "<group>"; };
 		977429E82BC707BD0069F4BA /* bone.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = bone.usdz; sourceTree = "<group>"; };
 		977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneKitExtensions.swift; sourceTree = "<group>"; };
+		97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthMapSaver.swift; sourceTree = "<group>"; };
+		97936C982BD6DF99005930F4 /* RedefineGuide-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RedefineGuide-Bridging-Header.h"; sourceTree = "<group>"; };
+		97936C992BD6DF9A005930F4 /* PngEncoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PngEncoder.h; sourceTree = "<group>"; };
+		97936C9A2BD6DF9A005930F4 /* PngEncoder.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PngEncoder.mm; sourceTree = "<group>"; };
+		97936C9B2BD6DF9A005930F4 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lodepng.cpp; sourceTree = "<group>"; };
+		97936C9C2BD6DF9A005930F4 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lodepng.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +149,7 @@
 				973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */,
 				973AEEF02BBF3FF90083CBED /* Assets.xcassets */,
 				977429E82BC707BD0069F4BA /* bone.usdz */,
+				97936C952BD6DF47005930F4 /* CCode */,
 				973AEF1C2BBF425B0083CBED /* Controllers */,
 				977429EC2BC70D850069F4BA /* Extensions */,
 				973AEF1E2BBF42670083CBED /* Models */,
@@ -208,8 +218,21 @@
 			isa = PBXGroup;
 			children = (
 				977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */,
+				97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		97936C952BD6DF47005930F4 /* CCode */ = {
+			isa = PBXGroup;
+			children = (
+				97936C9B2BD6DF9A005930F4 /* lodepng.cpp */,
+				97936C9C2BD6DF9A005930F4 /* lodepng.h */,
+				97936C992BD6DF9A005930F4 /* PngEncoder.h */,
+				97936C9A2BD6DF9A005930F4 /* PngEncoder.mm */,
+				97936C982BD6DF99005930F4 /* RedefineGuide-Bridging-Header.h */,
+			);
+			path = CCode;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -280,6 +303,7 @@
 				TargetAttributes = {
 					973AEEE82BBF3FF70083CBED = {
 						CreatedOnToolsVersion = 15.3;
+						LastSwiftMigration = 1530;
 					};
 					973AEEF82BBF3FF90083CBED = {
 						CreatedOnToolsVersion = 15.3;
@@ -349,6 +373,7 @@
 				973AEF352BBFAC6E0083CBED /* AppInitializationModel.swift in Sources */,
 				973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */,
 				973AEF312BBFAB250083CBED /* ARViewContainer.swift in Sources */,
+				97936C9E2BD6DF9A005930F4 /* lodepng.cpp in Sources */,
 				973AEF202BBF427D0083CBED /* AsyncButton.swift in Sources */,
 				973AEF2C2BBFAA080083CBED /* ThreadSafeDictionary.swift in Sources */,
 				973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */,
@@ -360,6 +385,8 @@
 				973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */,
 				973AEF192BBF41E20083CBED /* Helpers.swift in Sources */,
 				973AEF292BBFA9FA0083CBED /* AsyncQueueProcessor.swift in Sources */,
+				97936C8F2BD6DDFF005930F4 /* DepthMapSaver.swift in Sources */,
+				97936C9D2BD6DF9A005930F4 /* PngEncoder.mm in Sources */,
 				973AEF372BBFB0250083CBED /* Centered.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -521,6 +548,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"RedefineGuide/Preview Content\"";
@@ -543,6 +571,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.guides.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "RedefineGuide/CCode/RedefineGuide-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -553,6 +583,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"RedefineGuide/Preview Content\"";
@@ -560,7 +591,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RedefineGuide/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "RS Guide";
+				INFOPLIST_KEY_CFBundleDisplayName = "RS Guide Dev";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For overlaying guides over camera scenes";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -575,6 +606,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.redefinesurgery.guides;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "RedefineGuide/CCode/RedefineGuide-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
