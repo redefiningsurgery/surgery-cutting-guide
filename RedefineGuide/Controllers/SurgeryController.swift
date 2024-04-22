@@ -207,6 +207,15 @@ extension SurgeryController: SurgeryModelDelegate {
         pause()
         try startSession()
     }
+    
+    func saveFrame() async throws {
+        guard let frame = await self.sceneView?.session.currentFrame else {
+            throw logger.logAndGetError("Could not get current AR frame")
+        }
+        
+        let frameDirectory = try saveArFrame(frame)
+        logger.info("Saved frame to \(frameDirectory.absoluteString)")
+    }
 }
 
 // Helper function to create a combined rotation and translation matrix
