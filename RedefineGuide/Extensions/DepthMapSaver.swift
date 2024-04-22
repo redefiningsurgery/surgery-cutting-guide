@@ -73,6 +73,7 @@ fileprivate func encodeDepthMapToPng(_ depthMap: CVPixelBuffer) throws -> Data {
     return out.fileContents()
 }
 
+/// Writes camera odometry to a file.  Note this is done in Python syntax for copy/paste
 fileprivate func saveCameraTransform(camera: ARCamera, path: URL) throws {
     var contents = "# camera data - https://developer.apple.com/documentation/arkit/arcamera \n\n"
     
