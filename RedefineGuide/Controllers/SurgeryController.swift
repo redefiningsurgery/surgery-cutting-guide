@@ -76,22 +76,47 @@ class SurgeryController: NSObject {
             return
         }
 
-        do {
-            let modelNode = try loadModel("bone") // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
-            modelNode.scaleToWidth(20)
-            // make it translucent
-            modelNode.opacity = 0.5
-            // rotate the model up
-            modelNode.rotate(x: 90, y: 90, z: 0)
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let modelNode = try self.loadModel("bone")
+                DispatchQueue.main.async {
+                    modelNode.scaleToWidth(15)
+                    modelNode.opacity = 0.5
+                    modelNode.rotate(x: 0, y: 0, z: 0)
 
-            overlayNode = modelNode // Store the reference
-            updateOverlayModelPosition()
-            scene.rootNode.addChildNode(modelNode)
-            logger.info("Added model to scene")
-        } catch {
-            logger.error("Could not add leading model: \(error.localizedDescription)")
+                    // Set up materials
+                    let material = SCNMaterial()
+                    material.lightingModel = .physicallyBased
+                    material.metalness.contents = 1.0
+                    material.roughness.contents = 0.0
+                    modelNode.geometry?.firstMaterial = material
+
+                    // Set up scene lighting
+                    let lightNode = SCNNode()
+                    lightNode.light = SCNLight()
+                    lightNode.light?.type = .omni
+                    lightNode.position = SCNVector3(x: 10, y: 10, z: 10)
+                    scene.rootNode.addChildNode(lightNode)
+
+                    let ambientLightNode = SCNNode()
+                    ambientLightNode.light = SCNLight()
+                    ambientLightNode.light?.type = .ambient
+                    ambientLightNode.light?.color = UIColor.darkGray
+                    scene.rootNode.addChildNode(ambientLightNode)
+
+                    self.overlayNode = modelNode // Store the reference
+                    self.updateOverlayModelPosition()
+                    scene.rootNode.addChildNode(modelNode)
+                    self.logger.info("Added model to scene")
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.logger.error("Could not add leading model: \(error.localizedDescription)")
+                }
+            }
         }
     }
+
 
     func updateOverlayModelPosition() {
         guard let currentFrame = sceneView?.session.currentFrame else {
@@ -103,24 +128,27 @@ class SurgeryController: NSObject {
             return
         }
         
-        // Use the camera's transform to get its current orientation and position
-        let transform = currentFrame.camera.transform
-        let cameraPosition = SCNVector3(transform.columns.3.x, transform.columns.3.y, transform.columns.3.z)
+//        // *** Fixed cad model relative to the camera
+//        let cameraTransform = currentFrame.camera.transform
+//        let cameraPosition = SCNVector3(cameraTransform.columns.3.x, cameraTransform.columns.3.y, cameraTransform.columns.3.z)
+//        let forward = SCNVector3(-cameraTransform.columns.2.x, -cameraTransform.columns.2.y, -cameraTransform.columns.2.z)
+//        let adjustedForward = forward.normalized() * 0.9 // Adjust to be 0.5 meters in front
+//        overlayModel.position =  adjustedForward + cameraPosition
+//
+//        let cameraQuaternion = simd_quaternion(cameraTransform)
+//        let scnQuaternion = SCNQuaternion(cameraQuaternion.vector.x, cameraQuaternion.vector.y, cameraQuaternion.vector.z, cameraQuaternion.vector.w)
+//        overlayModel.orientation = scnQuaternion
+//        // *** Fixed cad model relative to the camera
         
-        // Calculate the forward vector from the camera transform
-        let forward = SCNVector3(-transform.columns.2.x, -transform.columns.2.y, -transform.columns.2.z)
-        let adjustedForward = forward.normalized() * 0.5 // Adjust to be 0.5 meters in front
+        // *** Fixed CAD model relative to world
+        let fixedWorldPosition = SCNVector3(x: 0.0, y: 0.0, z: 0.0)
+        let fixedWorldOrientation = SCNQuaternion(x: 0.0, y: 1.0, z: 0.0, w: 1.0)
+
+        overlayModel.position = fixedWorldPosition
+        overlayModel.orientation = fixedWorldOrientation
+        // *** Fixed CAD model relative to world
         
-        overlayModel.position =  adjustedForward + cameraPosition
-
-        let cameraTransform = currentFrame.camera.transform
-        let simdQuaternion = simd_quaternion(cameraTransform)
-
-        // Convert simd_quatf (quaternion) to SCNQuaternion (or SCNVector4)
-        let scnQuaternion = SCNQuaternion(simdQuaternion.vector.x, simdQuaternion.vector.y, simdQuaternion.vector.z, simdQuaternion.vector.w)
-
-        // Assign the converted quaternion to your node
-        overlayModel.orientation = scnQuaternion
+        
     }
     
     func removeOverlayModel() {
@@ -155,17 +183,39 @@ extension SurgeryController: ARSessionDelegate {
             
             DispatchQueue.main.async {
                 // Get the current orientation of the device in terms of camera transform
-                let currentTransform = frame.camera.transform
+                let cameraTransform = frame.camera.transform
+                let capturingTransform = simd_float4x4([
+                        simd_float4(0.008679075, -0.99172944, 0.1280538, 0.0),
+                        simd_float4(0.9999623, 0.008607603, -0.001111559, 0.0),
+                        simd_float4(1.2638304e-07, 0.12805861, 0.9917668, 0.0),
+                        simd_float4(0.0, 0.0, 0.0, 1.0)])
+                let inverseCapturingTransform = simd_inverse(capturingTransform)
+                let relativeTransform = simd_mul(inverseCapturingTransform, cameraTransform)
+                
+                // Define constants for translation and rotation
+                let dx: Float = 0.0  // meters to the right
+                let dy: Float = 0.0  // meters upward
+                let dz: Float = -1.0  // meters forward
+                let rotationAngle: Float = 0 * Float.pi / 4  // 45 degrees in radians
 
-                // Define the desired shift and rotation
-                let desiredShiftAndRotation = simd_make_float4x4(translation: [-0.0, -0.0, -0.5], rotation: (pitch: 0, yaw: 0, roll: 0))
-
-                // Combine the current orientation with the desired transformation
-                let combinedTransform = simd_mul(currentTransform, desiredShiftAndRotation)
-
-                // Apply the combined transformation as the new world origin
+                // Translation matrix
+                let translationMatrix = simd_float4x4(
+                    SIMD4<Float>(1, 0, 0, 0),
+                    SIMD4<Float>(0, 1, 0, 0),
+                    SIMD4<Float>(0, 0, 1, 0),
+                    SIMD4<Float>(dx, dy, dz, 1))
+                let rotationMatrix = simd_float4x4(
+                    SIMD4<Float>(cos(rotationAngle), 0, -sin(rotationAngle), 0),
+                    SIMD4<Float>(0, 1, 0, 0),
+                    SIMD4<Float>(sin(rotationAngle), 0, cos(rotationAngle), 0),
+                    SIMD4<Float>(0, 0, 0, 1))
+                let desiredShiftAndRotation = simd_mul(translationMatrix, rotationMatrix)
+                let combinedTransform = simd_mul(cameraTransform, desiredShiftAndRotation)
+                
                 session.setWorldOrigin(relativeTransform: combinedTransform)
                 self.logger.trace("Adjusted world origin")
+                let cam = frame.camera.transform
+                print("Camera Transform: \(cam)")
             }
         }
     }
