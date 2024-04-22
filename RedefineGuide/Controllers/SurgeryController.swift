@@ -54,6 +54,27 @@ class SurgeryController: NSObject {
         configuration.planeDetection = .horizontal
         configuration.isAutoFocusEnabled = true
 
+        if let device = ARWorldTrackingConfiguration.configurableCaptureDeviceForPrimaryCamera {
+            do {
+                try device.lockForConfiguration()
+                guard device.isFocusModeSupported(.locked) else {
+                    throw getError("Focus mode not supported")
+                }
+                device.focusMode = .locked
+                // Set to a specific lens position, where 0.5 is a mid-range focus distance
+                device.setFocusModeLocked(lensPosition: 0.5) { time in
+                    // Handle completion if needed
+                    self.logger.info("Updated lens position in \(time)")
+                }
+                logger.info("Called setFocusModeLocked \(device.isAdjustingFocus)")
+                device.unlockForConfiguration()
+            } catch {
+                logger.info("Could not adjust device focus: \(error.localizedDescription)")
+            }
+        } else {
+            logger.warning("Could not find AVCaptureDevice for ARSession")
+        }
+        
         sceneView.session.delegate = self
         sceneView.session.run(configuration, options: [.resetTracking])
         logger.info("Started AR session")
