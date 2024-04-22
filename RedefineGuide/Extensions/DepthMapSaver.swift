@@ -10,17 +10,19 @@ func saveArFrame(_ frame: ARFrame) throws -> URL {
         }
         // Get the documents directory path
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let directory = documentsDirectory.appendingPathComponent(createRecordingDirectoryName(), isDirectory: true)
+        let directory = documentsDirectory.appendingPathComponent(createRecordingDirectoryName(), conformingTo: .directory)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
         
-        let depthMapPath = directory.appendingPathComponent("depth.png", isDirectory: false)
+        let depthMapPath = directory.appendingPathComponent("depth.png", conformingTo: .fileURL)
         let depthMapPng = try encodeDepthMapToPng(depthData.depthMap)
         try depthMapPng.write(to: depthMapPath)
         
-        let rgbPath = directory.appendingPathComponent("rgb.png", isDirectory: false)
+        let rgbPath = directory.appendingPathComponent("rgb.png", conformingTo: .fileURL)
         let rgbPng = try encodeRgbToPng(frame.capturedImage)
         try rgbPng.write(to: rgbPath)
         
+        let cameraDataPath = directory.appendingPathComponent("camera.txt", conformingTo: .fileURL)
+        try saveCameraTransform(camera: frame.camera, path: cameraDataPath)
         return documentsDirectory
     }
 }
@@ -69,4 +71,60 @@ fileprivate func encodeDepthMapToPng(_ depthMap: CVPixelBuffer) throws -> Data {
     let out = PngEncoder.init(depth: inPixelData, width: Int32(width), height: Int32(height))!
     CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags(rawValue: 0))
     return out.fileContents()
+}
+
+fileprivate func saveCameraTransform(camera: ARCamera, path: URL) throws {
+    var contents = "# camera data - https://developer.apple.com/documentation/arkit/arcamera \n\n"
+    
+    contents += "transform = \(camera.transform.toArray())" + "\n\n"
+
+    // https://developer.apple.com/documentation/arkit/arcamera/2875730-intrinsics
+    let intrinsics = camera.intrinsics
+    let fx = intrinsics.columns.0.x
+    let fy = intrinsics.columns.1.y
+    let ox = intrinsics.columns.2.x
+    let oy = intrinsics.columns.2.y
+    contents += "intrinsics = \(intrinsics.toArray())" + "\n"
+    contents += "fx = \(fx)" + "\n"
+    contents += "fy = \(fy)" + "\n"
+    contents += "ox = \(ox)" + "\n"
+    contents += "oy = \(oy)" + "\n"
+    contents += "\n"
+
+    contents += "roll = \(camera.eulerAngles.x)" + "\n" // rotation around the x-axis
+    contents += "pitch = \(camera.eulerAngles.y)" + "\n" // rotation around the y-axis
+    contents += "yaw = \(camera.eulerAngles.z)" + "\n" // rotation around the z-axis
+    contents += "\n"
+
+    try contents.write(to: path, atomically: true, encoding: .utf8)
+}
+
+extension FileHandle {
+    func writeLine(_ text: String) throws {
+        let line = "\(text)\n".data(using: .utf8)!
+        try self.write(contentsOf: line)
+    }
+}
+
+
+extension simd_float3x3 {
+    func toArray() -> [Float] {
+        return [
+            self.columns.0.x, self.columns.1.x, self.columns.2.x, // First row
+            self.columns.0.y, self.columns.1.y, self.columns.2.y, // Second row
+            self.columns.0.z, self.columns.1.z, self.columns.2.z  // Third row
+        ]
+    }
+}
+
+extension simd_float4x4 {
+    func toArray() -> [Float] {
+        // i know it's weird, but w is the last column
+        return [
+            self.columns.0.x, self.columns.1.x, self.columns.2.x, self.columns.3.x, // First row
+            self.columns.0.y, self.columns.1.y, self.columns.2.y, self.columns.3.y, // Second row
+            self.columns.0.z, self.columns.1.z, self.columns.2.z, self.columns.3.z, // Third row
+            self.columns.0.w, self.columns.1.w, self.columns.2.w, self.columns.3.w  // Fourth row
+        ]
+    }
 }
