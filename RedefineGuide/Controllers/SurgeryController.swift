@@ -135,6 +135,35 @@ extension SurgeryController: ARSCNViewDelegate {
             if self.overlayNode != nil {
                 self.updateOverlayModelPosition()
             }
+            
+            if let pointCloud = self.sceneView?.session.currentFrame?.rawFeaturePoints {
+                self.updateFeaturePointIds(pointCloud)
+            }
+        }
+    }
+    
+    func updateFeaturePointIds(_ featurePoints: ARPointCloud) {
+        guard let sceneView = sceneView else {
+            return
+        }
+        // Remove existing feature point nodes
+        sceneView.scene.rootNode.childNodes.forEach { node in
+            if node.name == "featurePoint" {
+                node.removeFromParentNode()
+            }
+        }
+
+        // Add new feature point nodes
+        for (index, point) in featurePoints.points.enumerated() {
+            // Create a text node
+            let textGeometry = SCNText(string: "\(featurePoints.identifiers[index])", extrusionDepth: 0.1)
+            let textNode = SCNNode(geometry: textGeometry)
+            textNode.name = "featurePoint"
+            textNode.scale = SCNVector3(0.001, 0.001, 0.001) // Scale down the size of the text
+            textNode.position = SCNVector3(point.x + 0.01, point.y, point.z) // Offset the text slightly from the point
+
+            // Add the feature node to the scene
+            sceneView.scene.rootNode.addChildNode(textNode)
         }
     }
     
