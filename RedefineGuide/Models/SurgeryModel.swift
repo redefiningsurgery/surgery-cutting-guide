@@ -3,7 +3,7 @@ import ARKit
 
 class SurgeryModel: NSObject, ObservableObject {
 
-    @Published var showOverlay = false
+    @Published var startedSession = false
 
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")
@@ -33,6 +33,36 @@ class SurgeryModel: NSObject, ObservableObject {
         }
     }
 
+    func startSession() async {
+        guard let delegate = delegate else {
+            logger.warning("startSession did nothing because delegate is nil")
+            return
+        }
+        do {
+            try await delegate.startSession()
+            await MainActor.run {
+                startedSession = true
+            }
+        } catch {
+            logger.error("startSession: \(error.localizedDescription)")
+        }
+    }
+    
+    func stopSession() async {
+        guard let delegate = delegate else {
+            logger.warning("stopSession did nothing because delegate is nil")
+            return
+        }
+        do {
+            try await delegate.stopSession()
+            await MainActor.run {
+                startedSession = false
+            }
+        } catch {
+            logger.error("stopSession: \(error.localizedDescription)")
+        }
+    }
+    
     func saveFrame() async {
         guard let delegate = delegate else {
             logger.warning("saveFrame did nothing because delegate is nil")
@@ -41,7 +71,7 @@ class SurgeryModel: NSObject, ObservableObject {
         do {
             try await delegate.saveFrame()
         } catch {
-            logger.error("Error saveFrame: \(error.localizedDescription)")
+            logger.error("saveFrame: \(error.localizedDescription)")
         }
     }
 }
@@ -51,4 +81,6 @@ protocol SurgeryModelDelegate: AnyObject {
     func getARView() throws -> ARSCNView
     func resetWorldOrigin() throws
     func saveFrame() async throws
+    func startSession() async throws
+    func stopSession() async throws
 }
