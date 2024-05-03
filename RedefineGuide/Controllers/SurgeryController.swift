@@ -3,6 +3,7 @@ import SceneKit
 import SceneKit.ModelIO
 import ARKit
 import Combine
+import SwiftProtobuf
 
 class SurgeryController: NSObject {
 
@@ -178,23 +179,24 @@ extension SurgeryController: SurgeryModelDelegate {
         pause()
         try startArSession()
     }
-
-    func startSession() async throws {
-        let urlString = "\(serverUrl)/sessions"
+    
+    func executeRequest<T : Message>(of: T.Type, method: String, path: String, body: Data? = nil) async throws -> T {
+        let urlString = "\(serverUrl)/\(path)"
         guard let url = URL(string: urlString) else {
             throw logger.logAndGetError("Bad url: \(urlString)")
         }
-        logger.info("PUT \(urlString)")
+        logger.info("\(method) \(urlString)")
         var request = URLRequest(url: url)
-        request.httpMethod = "PUT"
-
+        request.httpMethod = method
+        request.httpBody = body
+        
         let (data, response) = try await URLSession.shared.data(for: request)
 
         // Check the response code
         guard let httpResponse = response as? HTTPURLResponse else {
             throw logger.logAndGetError("Incorrect response type")
         }
-
+        
         guard (200...299).contains(httpResponse.statusCode) else {
             var errorDetail = "Bad response code: \(httpResponse.statusCode)"
             if let responseData = String(data: data, encoding: .utf8), !responseData.isEmpty {
@@ -203,22 +205,23 @@ extension SurgeryController: SurgeryModelDelegate {
             throw logger.logAndGetError(errorDetail)
         }
 
-        // Deserialize the data into protobuf
-        let modelOutput: Requests_GetModelOutput
         do {
-            modelOutput = try Requests_GetModelOutput(serializedData: data)
+            let output = try of.init(serializedData: data)
+            return output
         } catch {
             throw logger.logAndGetError("Failed to deserialize response")
         }
+    }
+
+    func startSession() async throws {
+        let response = try await executeRequest(of: Requests_GetModelOutput.self, method: "PUT", path: "sessions")
         
-        guard !modelOutput.sessionID.isEmpty else {
+        guard !response.sessionID.isEmpty else {
             throw logger.logAndGetError("No session ID passed from server")
         }
         
-        try addOverlayModel(modelOutput.model)
-
-        // todo: validate
-        sessionId = modelOutput.sessionID
+        try addOverlayModel(response.model)
+        sessionId = response.sessionID
     }
     
     func stopSession() async throws {
@@ -231,9 +234,20 @@ extension SurgeryController: SurgeryModelDelegate {
         guard let frame = await self.sceneView?.session.currentFrame else {
             throw logger.logAndGetError("Could not get current AR frame")
         }
+        guard let sessionId = self.sessionId else {
+            throw logger.logAndGetError("No session ID present.")
+        }
         
-        let frameDirectory = try saveArFrame(frame)
-        logger.info("Saved frame to \(frameDirectory.absoluteString)")
+        #if DEBUG
+            let frameDirectory = try saveArFrame(frame)
+            logger.info("Saved frame to \(frameDirectory.absoluteString)")
+        #endif
+        
+        let response = try await executeRequest(of: Requests_GetPositionOutput.self, method: "POST", path: "sessions/\(sessionId)")
+        
+        print("Transform:")
+        print(response.transform)
+        
     }
 }
 
@@ -267,9 +281,10 @@ func makeRotationMatrix(axis: SIMD3<Float>, angle: Float) -> matrix_float4x4 {
 func loadMDLAsset(_ data: Data) throws -> MDLAsset {
     // Create a temporary URL to save the file
     let temporaryDirectoryURL = FileManager.default.temporaryDirectory
-    let temporaryFileURL = temporaryDirectoryURL.appendingPathComponent("\(UUID().uuidString).mdl")
+    let temporaryFileURL = temporaryDirectoryURL.appendingPathComponent("\(UUID().uuidString).usdz") // extension is important.  otherwise the overlay won't show
     try data.write(to: temporaryFileURL, options: [.atomic])
 
+    print("Loading model asset of \(data.count) bytes from \(temporaryFileURL.absoluteString)")
     let asset = MDLAsset(url: temporaryFileURL)
     // delete the file cuz we don't need it
     try FileManager.default.removeItem(at: temporaryFileURL)

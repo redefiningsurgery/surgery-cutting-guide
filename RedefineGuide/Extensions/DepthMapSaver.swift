@@ -2,6 +2,33 @@ import Foundation
 import CoreImage
 import ARKit
 
+/// Constructs the request body to get tracking position from the server
+func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Data {
+    guard let depthData = frame.sceneDepth else {
+        throw getError("ARFrame did not have sceneDepth data")
+    }
+
+    var request = Requests_GetPositionInput()
+    request.sessionID = sessionId
+    request.depthMap = try encodeDepthMapToPng(depthData.depthMap)
+    request.rgbImage = try encodeRgbToPng(frame.capturedImage)
+    request.transform = frame.camera.transform.toArray()
+
+    // https://developer.apple.com/documentation/arkit/arcamera/2875730-intrinsics
+    let intrinsics = frame.camera.intrinsics
+    let fx = intrinsics.columns.0.x
+    let fy = intrinsics.columns.1.y
+    let ox = intrinsics.columns.2.x
+    let oy = intrinsics.columns.2.y
+
+    request.fx = fx
+    request.fy = fy
+    request.ox = ox
+    request.oy = oy
+    
+    return try request.serializedData()
+}
+
 /// Stores the RGB and depth map to png files in a new directory, which is named by using a timestamp
 func saveArFrame(_ frame: ARFrame) throws -> URL {
     do {
