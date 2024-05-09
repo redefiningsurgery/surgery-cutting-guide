@@ -8,19 +8,25 @@ struct SurgeryView: View {
         VStack {
             ARViewContainer(model: model)
             HStack {
-                Toggle(isOn: $model.showOverlay) {
-                    Text("Show Overlay")
-                      .frame(maxWidth: .infinity, alignment: .trailing)
-                }
                 Spacer()
-                Button("Reset Center") {
-                    model.resetWorldOrigin()
-                }
+                AsyncButton(action: {
+                    await model.startSession()
+                }, label: {
+                    Text("Start")
+                }).disabled(model.startedSession)
+                Spacer()
                 AsyncButton(action: {
                     await model.saveFrame()
                 }, label: {
-                   Text("Save Frame")
-                })
+                    Text("Track")
+                }).disabled(!model.startedSession)
+                Spacer()
+                AsyncButton(action: {
+                    await model.stopSession()
+                }, label: {
+                    Text("Stop")
+                }).disabled(!model.startedSession)
+                Spacer()
             }
         }
     }

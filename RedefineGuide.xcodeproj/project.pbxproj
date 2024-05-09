@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9704FBB72BE56F1B00EDBA81 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 9704FBB62BE56F1B00EDBA81 /* SwiftProtobuf */; };
+		9710BDE42BE5629700D30434 /* messages.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9710BDE32BE5629700D30434 /* messages.pb.swift */; };
 		973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */; };
 		973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEE2BBF3FF70083CBED /* RootView.swift */; };
 		973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 973AEEF02BBF3FF90083CBED /* Assets.xcassets */; };
@@ -29,7 +31,6 @@
 		973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF382BBFB3670083CBED /* SurgeryController.swift */; };
 		973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3A2BC433EE0083CBED /* SurgeryView.swift */; };
 		973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3E2BC456A20083CBED /* SurgeryModel.swift */; };
-		977429E92BC707BD0069F4BA /* bone.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 977429E82BC707BD0069F4BA /* bone.usdz */; };
 		977429EE2BC70D9C0069F4BA /* SceneKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */; };
 		97936C8F2BD6DDFF005930F4 /* DepthMapSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */; };
 		97936C9D2BD6DF9A005930F4 /* PngEncoder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 97936C9A2BD6DF9A005930F4 /* PngEncoder.mm */; };
@@ -54,6 +55,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9710BDE12BE5626200D30434 /* messages.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.protobuf; path = messages.proto; sourceTree = "<group>"; };
+		9710BDE32BE5629700D30434 /* messages.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = messages.pb.swift; sourceTree = "<group>"; };
 		973AEEE92BBF3FF70083CBED /* RedefineGuide.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RedefineGuide.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedefineGuideApp.swift; sourceTree = "<group>"; };
 		973AEEEE2BBF3FF70083CBED /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -80,7 +83,6 @@
 		973AEF382BBFB3670083CBED /* SurgeryController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryController.swift; sourceTree = "<group>"; };
 		973AEF3A2BC433EE0083CBED /* SurgeryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryView.swift; sourceTree = "<group>"; };
 		973AEF3E2BC456A20083CBED /* SurgeryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryModel.swift; sourceTree = "<group>"; };
-		977429E82BC707BD0069F4BA /* bone.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = bone.usdz; sourceTree = "<group>"; };
 		977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneKitExtensions.swift; sourceTree = "<group>"; };
 		97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthMapSaver.swift; sourceTree = "<group>"; };
 		97936C982BD6DF99005930F4 /* RedefineGuide-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RedefineGuide-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9704FBB72BE56F1B00EDBA81 /* SwiftProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +118,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9704FBB22BE56CA300EDBA81 /* Protobufs */ = {
+			isa = PBXGroup;
+			children = (
+				9710BDE32BE5629700D30434 /* messages.pb.swift */,
+				9710BDE12BE5626200D30434 /* messages.proto */,
+			);
+			path = Protobufs;
+			sourceTree = "<group>";
+		};
+		9704FBB52BE56F1B00EDBA81 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		973AEEE02BBF3FF70083CBED = {
 			isa = PBXGroup;
 			children = (
@@ -122,6 +141,7 @@
 				973AEEFC2BBF3FF90083CBED /* RedefineGuideTests */,
 				973AEF062BBF3FF90083CBED /* RedefineGuideUITests */,
 				973AEEEA2BBF3FF70083CBED /* Products */,
+				9704FBB52BE56F1B00EDBA81 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -148,12 +168,12 @@
 				973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */,
 				973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */,
 				973AEEF02BBF3FF90083CBED /* Assets.xcassets */,
-				977429E82BC707BD0069F4BA /* bone.usdz */,
 				97936C952BD6DF47005930F4 /* CCode */,
 				973AEF1C2BBF425B0083CBED /* Controllers */,
 				977429EC2BC70D850069F4BA /* Extensions */,
 				973AEF1E2BBF42670083CBED /* Models */,
 				973AEEF22BBF3FF90083CBED /* Preview Content */,
+				9704FBB22BE56CA300EDBA81 /* Protobufs */,
 				973AEF1D2BBF42610083CBED /* Views */,
 			);
 			path = RedefineGuide;
@@ -251,6 +271,9 @@
 			dependencies = (
 			);
 			name = RedefineGuide;
+			packageProductDependencies = (
+				9704FBB62BE56F1B00EDBA81 /* SwiftProtobuf */,
+			);
 			productName = RedefineGuide;
 			productReference = 973AEEE92BBF3FF70083CBED /* RedefineGuide.app */;
 			productType = "com.apple.product-type.application";
@@ -324,6 +347,9 @@
 				Base,
 			);
 			mainGroup = 973AEEE02BBF3FF70083CBED;
+			packageReferences = (
+				9710BDE52BE5656D00D30434 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
+			);
 			productRefGroup = 973AEEEA2BBF3FF70083CBED /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -342,7 +368,6 @@
 			files = (
 				973AEEF42BBF3FF90083CBED /* Preview Assets.xcassets in Resources */,
 				973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */,
-				977429E92BC707BD0069F4BA /* bone.usdz in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -371,6 +396,7 @@
 				973AEF2F2BBFAA6F0083CBED /* Constants.swift in Sources */,
 				973AEF1B2BBF42390083CBED /* LifecycleEventMonitor.swift in Sources */,
 				973AEF352BBFAC6E0083CBED /* AppInitializationModel.swift in Sources */,
+				9710BDE42BE5629700D30434 /* messages.pb.swift in Sources */,
 				973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */,
 				973AEF312BBFAB250083CBED /* ARViewContainer.swift in Sources */,
 				97936C9E2BD6DF9A005930F4 /* lodepng.cpp in Sources */,
@@ -728,6 +754,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9710BDE52BE5656D00D30434 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.26.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9704FBB62BE56F1B00EDBA81 /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9710BDE52BE5656D00D30434 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 973AEEE12BBF3FF70083CBED /* Project object */;
 }

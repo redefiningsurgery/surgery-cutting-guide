@@ -2,6 +2,22 @@ import Foundation
 import CoreImage
 import ARKit
 
+/// Constructs the request body to get tracking position from the server
+func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Data {
+    guard let depthData = frame.sceneDepth else {
+        throw getError("ARFrame did not have sceneDepth data")
+    }
+
+    var request = Requests_GetPositionInput()
+    request.sessionID = sessionId
+    request.depthMap = try encodeDepthMapToPng(depthData.depthMap)
+    request.rgbImage = try encodeRgbToPng(frame.capturedImage)
+    // https://developer.apple.com/documentation/arkit/arcamera/2875730-intrinsics
+    request.transform = frame.camera.intrinsics.toArray()
+    
+    return try request.serializedData()
+}
+
 /// Stores the RGB and depth map to png files in a new directory, which is named by using a timestamp
 func saveArFrame(_ frame: ARFrame) throws -> URL {
     do {
@@ -59,8 +75,9 @@ fileprivate func encodeDepthMapToPng(_ depthMap: CVPixelBuffer) throws -> Data {
     guard CVPixelBufferGetPixelFormatType(depthMap) == kCVPixelFormatType_DepthFloat32 else {
         throw getError("Depth map was in the wrong pixel format.")
     }
-    let height = CVPixelBufferGetHeight(depthMap)
-    let width = CVPixelBufferGetWidth(depthMap)
+    let height = CVPixelBufferGetHeight(depthMap) // 196
+    let width = CVPixelBufferGetWidth(depthMap) // 256
+
     CVPixelBufferLockBaseAddress(depthMap, CVPixelBufferLockFlags.readOnly)
     guard let inBase = CVPixelBufferGetBaseAddress(depthMap) else {
         throw getError("Could not get pixel buffer address")

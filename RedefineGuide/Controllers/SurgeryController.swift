@@ -3,15 +3,22 @@ import SceneKit
 import SceneKit.ModelIO
 import ARKit
 import Combine
+import SwiftProtobuf
 
 class SurgeryController: NSObject {
+    enum OverlayPosition {
+        case frontOfCamera
+        case fixed
+    }
 
     let model: SurgeryModel
     private var logger = RedefineLogger("SurgeryController")
     private var sceneView: ARSCNView? = nil
     private var scene: SCNScene? = nil
     private var overlayNode: SCNNode?
+    private var overlayPosition: OverlayPosition = .frontOfCamera
     private var showOverlaySubscription: AnyCancellable?
+    private var sessionId: String? = nil
 
     override init() {
         model = SurgeryModel()
@@ -19,21 +26,6 @@ class SurgeryController: NSObject {
         super.init()
 
         model.delegate = self
-        showOverlaySubscription = model.$showOverlay
-            .sink { [weak self] newValue in
-                self?.handleShowOverlayChanged(newValue)
-            }
-    }
-    
-    private func handleShowOverlayChanged(_ show: Bool) {
-        guard sceneView != nil else {
-            return
-        }
-        if show {
-            addOverlayModel()
-        } else {
-            removeOverlayModel()
-        }
     }
     
     func pause() {
@@ -43,7 +35,7 @@ class SurgeryController: NSObject {
     
     private var adjustedWorldOrigin = false
     
-    private func startSession() throws {
+    private func startArSession() throws {
         guard let sceneView = sceneView else {
             throw logger.logAndGetError("No sceneView.  Cannot start ARSession")
         }
@@ -59,38 +51,28 @@ class SurgeryController: NSObject {
         logger.info("Started AR session")
     }
 
-    /// Loads the given usdz file into a SCNNode.  Note that this should be processed on a background thread, as it is resource intensive and would cause the UI thread to pause
-    private func loadModel(_ name: String) throws -> SCNNode {
-        guard let modelURL = Bundle.main.url(forResource: name, withExtension: "usdz") else {
-            throw logger.logAndGetError("Could not find model file for \(name)")
+    func addOverlayModel(_ data: Data) throws {
+        guard overlayNode == nil, let scene = scene else {
+            throw logger.logAndGetError("addOverlayModel called but overlayModel already existed or scene was missing")
         }
-        let modelAsset = MDLAsset(url: modelURL)
+
+        let modelAsset = try loadMDLAsset(data)
         modelAsset.loadTextures()
         let modelObject = modelAsset.object(at: 0)
-        return SCNNode(mdlObject: modelObject)
-    }
-    
-    func addOverlayModel() {
-        guard overlayNode == nil, let scene = scene else {
-            logger.error("addOverlayModel called but overlayModel already existed or scene was missing")
-            return
-        }
 
-        do {
-            let modelNode = try loadModel("bone") // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
-            modelNode.scaleToWidth(20)
-            // make it translucent
-            modelNode.opacity = 0.5
-            // rotate the model up
-            modelNode.rotate(x: 90, y: 90, z: 0)
+        // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
+        let modelNode = SCNNode(mdlObject: modelObject)
+        modelNode.scaleToWidth(20)
+        // make it translucent
+        modelNode.opacity = 0.5
+        // rotate the model up
+        // modelNode.rotate(x: 90, y: 90, z: 0)
 
-            overlayNode = modelNode // Store the reference
-            updateOverlayModelPosition()
-            scene.rootNode.addChildNode(modelNode)
-            logger.info("Added model to scene")
-        } catch {
-            logger.error("Could not add leading model: \(error.localizedDescription)")
-        }
+        overlayNode = modelNode // Store the reference
+        overlayPosition = .frontOfCamera
+        updateOverlayModelPosition()
+        scene.rootNode.addChildNode(modelNode)
+        logger.info("Added model to scene")
     }
 
     func updateOverlayModelPosition() {
@@ -100,6 +82,10 @@ class SurgeryController: NSObject {
         }
         guard let overlayModel = overlayNode else {
             logger.warning("No leading Overlay to update position for")
+            return
+        }
+        guard overlayPosition == .frontOfCamera else {
+            logger.warning("updateOverlayModelPosition called but it should not be floating in front of the camera")
             return
         }
         
@@ -132,16 +118,11 @@ class SurgeryController: NSObject {
 extension SurgeryController: ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         DispatchQueue.main.async {
-            if self.overlayNode != nil {
+            if self.overlayNode != nil && self.overlayPosition == .frontOfCamera {
                 self.updateOverlayModelPosition()
             }
         }
     }
-    
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        logger.trace("ARAnchor added: \(type(of: anchor))")
-    }
-
 }
 
 extension SurgeryController: ARSessionDelegate {
@@ -194,27 +175,101 @@ extension SurgeryController: SurgeryModelDelegate {
         
         self.scene = scene
         self.sceneView = sceneView
-        try startSession()
-     
-        if model.showOverlay {
-            addOverlayModel()
-        }
+        try startArSession()
         
         return sceneView
     }
     
     func resetWorldOrigin() throws {
         pause()
-        try startSession()
+        try startArSession()
+    }
+    
+    func executeRequest<T : Message>(of: T.Type, method: String, path: String, body: Data? = nil) async throws -> T {
+        let urlString = "\(getServerUrl())/\(path)"
+        guard let url = URL(string: urlString) else {
+            throw logger.logAndGetError("Bad url: \(urlString)")
+        }
+        logger.info("\(method) \(urlString)")
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.httpBody = body
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        // Check the response code
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw logger.logAndGetError("Incorrect response type")
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            var errorDetail = "Bad response code: \(httpResponse.statusCode)"
+            if let responseData = String(data: data, encoding: .utf8), !responseData.isEmpty {
+                errorDetail += ", Message: \(responseData)"
+            }
+            throw logger.logAndGetError(errorDetail)
+        }
+
+        do {
+            let output = try of.init(serializedData: data)
+            return output
+        } catch {
+            throw logger.logAndGetError("Failed to deserialize response")
+        }
+    }
+
+    func startSession() async throws {
+        let response = try await executeRequest(of: Requests_GetModelOutput.self, method: "PUT", path: "sessions")
+        
+        guard !response.sessionID.isEmpty else {
+            throw logger.logAndGetError("No session ID passed from server")
+        }
+        
+        try addOverlayModel(response.model)
+        sessionId = response.sessionID
+    }
+    
+    func stopSession() async throws {
+        removeOverlayModel()
+        sessionId = nil
+        // todo: notify the server so it can close the session
     }
     
     func saveFrame() async throws {
         guard let frame = await self.sceneView?.session.currentFrame else {
             throw logger.logAndGetError("Could not get current AR frame")
         }
+        guard let sessionId = self.sessionId else {
+            throw logger.logAndGetError("No session ID present.")
+        }
         
-        let frameDirectory = try saveArFrame(frame)
-        logger.info("Saved frame to \(frameDirectory.absoluteString)")
+        #if DEBUG
+            let frameDirectory = try saveArFrame(frame)
+            logger.info("Saved frame to \(frameDirectory.absoluteString)")
+        #endif
+        
+        let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
+        let response = try await executeRequest(of: Requests_GetPositionOutput.self, method: "POST", path: "sessions/\(sessionId)", body: request)
+        
+        logger.info("Transform: \(response.transform)")
+
+        guard let resultTransform = createSim4Float4x4(response.transform)?.transpose else {
+            throw logger.logAndGetError("Result transform was invalid")
+        }
+        guard let overlayNode = overlayNode else {
+            throw logger.logAndGetError("Overlay was not present")
+        }
+        
+        overlayPosition = .fixed
+        let position = SCNVector3(resultTransform.columns.3.x, resultTransform.columns.3.y, resultTransform.columns.3.z)
+        let orientationVector = simd_quaternion(resultTransform).vector
+        let orientation = SCNQuaternion(orientationVector.x, orientationVector.y, orientationVector.z, orientationVector.w)
+        await MainActor.run {
+            logger.info("Fixing overlay at position \(position) and orientation \(orientation)")
+            overlayNode.position = position
+            overlayNode.orientation = orientation
+            overlayNode.opacity = 0.8 // show more of it
+        }
     }
 }
 
@@ -232,6 +287,23 @@ func simd_make_float4x4(translation: SIMD3<Float>, rotation: (pitch: Float, yaw:
     return simd_mul(rotationMatrix, translationMatrix)
 }
 
+func createSim4Float4x4(_ array: [Float]) -> simd_float4x4? {
+    guard array.count == 16 else {
+        return nil
+    }
+    
+    // Create simd_float4 vectors for each row
+    let row0 = simd_float4(array[0], array[1], array[2], array[3])
+    let row1 = simd_float4(array[4], array[5], array[6], array[7])
+    let row2 = simd_float4(array[8], array[9], array[10], array[11])
+    let row3 = simd_float4(array[12], array[13], array[14], array[15])
+    
+    // Construct the simd_float4x4 matrix from the rows
+    let matrix = simd_float4x4(row0, row1, row2, row3)
+    return matrix
+}
+
+
 // Create a rotation matrix around an axis by an angle to avoid conflict
 func makeRotationMatrix(axis: SIMD3<Float>, angle: Float) -> matrix_float4x4 {
     let c = cos(angle)
@@ -245,4 +317,15 @@ func makeRotationMatrix(axis: SIMD3<Float>, angle: Float) -> matrix_float4x4 {
     return matrix_float4x4(columns: (column0, column1, column2, column3))
 }
 
+func loadMDLAsset(_ data: Data) throws -> MDLAsset {
+    // Create a temporary URL to save the file
+    let temporaryDirectoryURL = FileManager.default.temporaryDirectory
+    let temporaryFileURL = temporaryDirectoryURL.appendingPathComponent("\(UUID().uuidString).usdz") // extension is important.  otherwise the overlay won't show
+    try data.write(to: temporaryFileURL, options: [.atomic])
 
+    print("Loading model asset of \(data.count) bytes from \(temporaryFileURL.absoluteString)")
+    let asset = MDLAsset(url: temporaryFileURL)
+    // delete the file cuz we don't need it
+    try FileManager.default.removeItem(at: temporaryFileURL)
+    return asset
+}

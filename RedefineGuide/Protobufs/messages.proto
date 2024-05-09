@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+/**
+ Contains protobuf messages sent back and forth between the app and server.
+
+ All matrices are stored in row-major order as a 1D array, so the first row is stored first, then the second row, and so on.  The number of columns and rows are stored in separate fields.
+
+ To generate the code for this file is below.  Note you must be in the same directory as the proto file:
+ Swift: `protoc --swift_out=. messages.proto`
+ Python: `protoc --python_out=. messages.proto`
+
+Note: currently this file is in two repositories, one for Swift and one for Python.  The Swift version is the master, and the Python version is copied from the Swift version.  If you make changes to this file, please copy the changes to the other repository.
+
+ */
+package requests;
+
+message GetModelOutput {
+    string session_id = 1;
+    bytes model = 2;
+}
+
+message GetPositionInput {
+    string session_id = 1;
+
+    bytes depth_map = 2;
+    bytes rgb_image = 3;
+
+    // A 4x4 row-major matrix of the position and orientation of the camera in world coordinate space.
+    // https://developer.apple.com/documentation/arkit/arcamera/2866108-transform
+    repeated float transform = 4;
+
+    // Camera intrinsics
+    float fx = 10;
+    float fy = 11;
+    float ox = 12;
+    float oy = 13;
+}
+
+message GetPositionOutput {
+    // A 4x4 row-major matrix of the position and orientation of the object in world coordinate space
+    repeated float transform = 1;
+
+}
