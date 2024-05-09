@@ -12,19 +12,8 @@ func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Data {
     request.sessionID = sessionId
     request.depthMap = try encodeDepthMapToPng(depthData.depthMap)
     request.rgbImage = try encodeRgbToPng(frame.capturedImage)
-    request.transform = frame.camera.transform.toArray()
-
     // https://developer.apple.com/documentation/arkit/arcamera/2875730-intrinsics
-    let intrinsics = frame.camera.intrinsics
-    let fx = intrinsics.columns.0.x
-    let fy = intrinsics.columns.1.y
-    let ox = intrinsics.columns.2.x
-    let oy = intrinsics.columns.2.y
-
-    request.fx = fx
-    request.fy = fy
-    request.ox = ox
-    request.oy = oy
+    request.transform = frame.camera.intrinsics.toArray()
     
     return try request.serializedData()
 }
@@ -86,8 +75,9 @@ fileprivate func encodeDepthMapToPng(_ depthMap: CVPixelBuffer) throws -> Data {
     guard CVPixelBufferGetPixelFormatType(depthMap) == kCVPixelFormatType_DepthFloat32 else {
         throw getError("Depth map was in the wrong pixel format.")
     }
-    let height = CVPixelBufferGetHeight(depthMap)
-    let width = CVPixelBufferGetWidth(depthMap)
+    let height = CVPixelBufferGetHeight(depthMap) // 196
+    let width = CVPixelBufferGetWidth(depthMap) // 256
+
     CVPixelBufferLockBaseAddress(depthMap, CVPixelBufferLockFlags.readOnly)
     guard let inBase = CVPixelBufferGetBaseAddress(depthMap) else {
         throw getError("Could not get pixel buffer address")

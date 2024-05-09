@@ -6,12 +6,17 @@ import Combine
 import SwiftProtobuf
 
 class SurgeryController: NSObject {
+    enum OverlayPosition {
+        case frontOfCamera
+        case fixed
+    }
 
     let model: SurgeryModel
     private var logger = RedefineLogger("SurgeryController")
     private var sceneView: ARSCNView? = nil
     private var scene: SCNScene? = nil
     private var overlayNode: SCNNode?
+    private var overlayPosition: OverlayPosition = .frontOfCamera
     private var showOverlaySubscription: AnyCancellable?
     private var sessionId: String? = nil
 
@@ -61,9 +66,10 @@ class SurgeryController: NSObject {
         // make it translucent
         modelNode.opacity = 0.5
         // rotate the model up
-        modelNode.rotate(x: 90, y: 90, z: 0)
+        // modelNode.rotate(x: 90, y: 90, z: 0)
 
         overlayNode = modelNode // Store the reference
+        overlayPosition = .frontOfCamera
         updateOverlayModelPosition()
         scene.rootNode.addChildNode(modelNode)
         logger.info("Added model to scene")
@@ -76,6 +82,10 @@ class SurgeryController: NSObject {
         }
         guard let overlayModel = overlayNode else {
             logger.warning("No leading Overlay to update position for")
+            return
+        }
+        guard overlayPosition == .frontOfCamera else {
+            logger.warning("updateOverlayModelPosition called but it should not be floating in front of the camera")
             return
         }
         
@@ -108,16 +118,11 @@ class SurgeryController: NSObject {
 extension SurgeryController: ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         DispatchQueue.main.async {
-            if self.overlayNode != nil {
+            if self.overlayNode != nil && self.overlayPosition == .frontOfCamera {
                 self.updateOverlayModelPosition()
             }
         }
     }
-    
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        logger.trace("ARAnchor added: \(type(of: anchor))")
-    }
-
 }
 
 extension SurgeryController: ARSessionDelegate {
@@ -181,7 +186,7 @@ extension SurgeryController: SurgeryModelDelegate {
     }
     
     func executeRequest<T : Message>(of: T.Type, method: String, path: String, body: Data? = nil) async throws -> T {
-        let urlString = "\(serverUrl)/\(path)"
+        let urlString = "\(getServerUrl())/\(path)"
         guard let url = URL(string: urlString) else {
             throw logger.logAndGetError("Bad url: \(urlString)")
         }
@@ -243,11 +248,28 @@ extension SurgeryController: SurgeryModelDelegate {
             logger.info("Saved frame to \(frameDirectory.absoluteString)")
         #endif
         
-        let response = try await executeRequest(of: Requests_GetPositionOutput.self, method: "POST", path: "sessions/\(sessionId)")
+        let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
+        let response = try await executeRequest(of: Requests_GetPositionOutput.self, method: "POST", path: "sessions/\(sessionId)", body: request)
         
-        print("Transform:")
-        print(response.transform)
+        logger.info("Transform: \(response.transform)")
+
+        guard let resultTransform = createSim4Float4x4(response.transform)?.transpose else {
+            throw logger.logAndGetError("Result transform was invalid")
+        }
+        guard let overlayNode = overlayNode else {
+            throw logger.logAndGetError("Overlay was not present")
+        }
         
+        overlayPosition = .fixed
+        let position = SCNVector3(resultTransform.columns.3.x, resultTransform.columns.3.y, resultTransform.columns.3.z)
+        let orientationVector = simd_quaternion(resultTransform).vector
+        let orientation = SCNQuaternion(orientationVector.x, orientationVector.y, orientationVector.z, orientationVector.w)
+        await MainActor.run {
+            logger.info("Fixing overlay at position \(position) and orientation \(orientation)")
+            overlayNode.position = position
+            overlayNode.orientation = orientation
+            overlayNode.opacity = 0.8 // show more of it
+        }
     }
 }
 
@@ -264,6 +286,23 @@ func simd_make_float4x4(translation: SIMD3<Float>, rotation: (pitch: Float, yaw:
 
     return simd_mul(rotationMatrix, translationMatrix)
 }
+
+func createSim4Float4x4(_ array: [Float]) -> simd_float4x4? {
+    guard array.count == 16 else {
+        return nil
+    }
+    
+    // Create simd_float4 vectors for each row
+    let row0 = simd_float4(array[0], array[1], array[2], array[3])
+    let row1 = simd_float4(array[4], array[5], array[6], array[7])
+    let row2 = simd_float4(array[8], array[9], array[10], array[11])
+    let row3 = simd_float4(array[12], array[13], array[14], array[15])
+    
+    // Construct the simd_float4x4 matrix from the rows
+    let matrix = simd_float4x4(row0, row1, row2, row3)
+    return matrix
+}
+
 
 // Create a rotation matrix around an axis by an angle to avoid conflict
 func makeRotationMatrix(axis: SIMD3<Float>, angle: Float) -> matrix_float4x4 {
