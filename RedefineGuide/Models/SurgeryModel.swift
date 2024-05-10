@@ -74,6 +74,18 @@ class SurgeryModel: NSObject, ObservableObject {
             logger.error("saveFrame: \(error.localizedDescription)")
         }
     }
+    
+    func saveSnapshot() async {
+        guard let delegate = delegate else {
+            logger.warning("saveSnapshot did nothing because delegate is nil")
+            return
+        }
+        do {
+            try await delegate.saveSnapshot()
+        } catch {
+            logger.error("saveSnapshot: \(error.localizedDescription)")
+        }
+    }
 }
 
 
@@ -83,4 +95,5 @@ protocol SurgeryModelDelegate: AnyObject {
     func startTracking() async throws
     func startSession() async throws
     func stopSession() async throws
+    func saveSnapshot() async throws
 }

@@ -27,6 +27,12 @@ struct SurgeryView: View {
                     Text("Stop")
                 }).disabled(!model.startedSession)
                 Spacer()
+                AsyncButton(action: {
+                    await model.saveSnapshot()
+                }, label: {
+                    Text("Snapshot")
+                })
+                Spacer()
             }
         }
     }
