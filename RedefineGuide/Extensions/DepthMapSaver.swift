@@ -3,7 +3,7 @@ import CoreImage
 import ARKit
 
 /// Constructs the request body to get tracking position from the server
-func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Data {
+func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Requests_GetPositionInput {
     guard let depthData = frame.sceneDepth else {
         throw getError("ARFrame did not have sceneDepth data")
     }
@@ -13,40 +13,58 @@ func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Data {
     request.depthMap = try encodeDepthMapToPng(depthData.depthMap)
     request.rgbImage = try encodeRgbToPng(frame.capturedImage)
     // https://developer.apple.com/documentation/arkit/arcamera/2875730-intrinsics
-    request.transform = frame.camera.intrinsics.toArray()
-    
-    return try request.serializedData()
+    request.intrinsics = frame.camera.intrinsics.toArray()
+    request.transform = frame.camera.transform.toArray()
+    return request
 }
 
-/// Stores the RGB and depth map to png files in a new directory, which is named by using a timestamp
-func saveArFrame(_ frame: ARFrame) throws -> URL {
+/// Saves the request data to the phone so it can be re-sent and analyzed later.  Note that the server might also make a copy, but this is good to have.
+/// It saves the raw request data, but also saves files in the format that FoundationPose's YcbineoatReader expects
+func saveTrackingRequest(_ serverRequest: Requests_GetPositionInput) throws {
     do {
-        guard let depthData = frame.sceneDepth else {
-            throw getError("ARFrame did not have sceneDepth data")
-        }
         // Get the documents directory path
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let directory = documentsDirectory.appendingPathComponent(createRecordingDirectoryName(), conformingTo: .directory)
+        let directory = documentsDirectory.appendingPathComponent(serverRequest.sessionID, conformingTo: .directory)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
         
-        let depthMapPath = directory.appendingPathComponent("depth.png", conformingTo: .fileURL)
-        let depthMapPng = try encodeDepthMapToPng(depthData.depthMap)
-        try depthMapPng.write(to: depthMapPath)
+        let requestDataPath = directory.appendingPathComponent("latest_track_request.bin", conformingTo: .fileURL)
+        let requestData = try serverRequest.serializedData()
+        try requestData.write(to: requestDataPath)
         
-        let rgbPath = directory.appendingPathComponent("rgb.png", conformingTo: .fileURL)
-        let rgbPng = try encodeRgbToPng(frame.capturedImage)
-        try rgbPng.write(to: rgbPath)
+        try saveToSubdirectory(directory: directory, subdirectory: "rgb", fileName: "0.png", data: serverRequest.rgbImage)
+        try saveToSubdirectory(directory: directory, subdirectory: "depth", fileName: "0.png", data: serverRequest.depthMap)
+
+        // save intrinsics in the format that FoundationPose likes
+        let intrinsics = serverRequest.intrinsics
+        let intrinsicsStr = 
+            "\(intrinsics[0]) \(intrinsics[1]) \(intrinsics[2])\n" +
+            "\(intrinsics[3]) \(intrinsics[4]) \(intrinsics[5])\n" +
+            "\(intrinsics[6]) \(intrinsics[7]) \(intrinsics[8])"
+        let intrinsicsPath = directory.appendingPathComponent("cam_K.txt", conformingTo: .fileURL)
+        try intrinsicsStr.write(to: intrinsicsPath, atomically: true, encoding: .utf8)
         
-        let cameraDataPath = directory.appendingPathComponent("camera.txt", conformingTo: .fileURL)
-        try saveCameraTransform(camera: frame.camera, path: cameraDataPath)
-        return documentsDirectory
+        let transform = serverRequest.transform
+        let transformStr =
+            "\(transform[0]) \(transform[1]) \(transform[2]) \(transform[3])\n" +
+            "\(transform[4]) \(transform[5]) \(transform[6]) \(transform[7])\n" +
+            "\(transform[8]) \(transform[9]) \(transform[10]) \(transform[11])\n" +
+            "\(transform[12]) \(transform[13]) \(transform[14]) \(transform[15])"
+        let transformDir = try createSubdirectory(directory: directory, subdirectory: "ob_in_cam")
+        let transformPath = transformDir.appendingPathComponent("0.txt", conformingTo: .fileURL)
+        try transformStr.write(to: transformPath, atomically: true, encoding: .utf8)
     }
 }
 
-fileprivate func createRecordingDirectoryName() -> String {
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-    return dateFormatter.string(from: Date())
+func createSubdirectory(directory: URL, subdirectory: String) throws -> URL {
+    let subdir = directory.appendingPathComponent(subdirectory, conformingTo: .directory)
+    try FileManager.default.createDirectory(at: subdir, withIntermediateDirectories: true, attributes: nil)
+    return subdir
+}
+
+func saveToSubdirectory(directory: URL, subdirectory: String, fileName: String, data: Data) throws {
+    let subdir = try createSubdirectory(directory: directory, subdirectory: subdirectory)
+    let filePath = subdir.appendingPathComponent(fileName, conformingTo: .fileURL)
+    try data.write(to: filePath)
 }
 
 /// Takes the camera image and converts it to a PNG
@@ -88,33 +106,6 @@ fileprivate func encodeDepthMapToPng(_ depthMap: CVPixelBuffer) throws -> Data {
     let out = PngEncoder.init(depth: inPixelData, width: Int32(width), height: Int32(height))!
     CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags(rawValue: 0))
     return out.fileContents()
-}
-
-/// Writes camera odometry to a file.  Note this is done in Python syntax for copy/paste
-fileprivate func saveCameraTransform(camera: ARCamera, path: URL) throws {
-    var contents = "# camera data - https://developer.apple.com/documentation/arkit/arcamera \n\n"
-    
-    contents += "transform = \(camera.transform.toArray())" + "\n\n"
-
-    // https://developer.apple.com/documentation/arkit/arcamera/2875730-intrinsics
-    let intrinsics = camera.intrinsics
-    let fx = intrinsics.columns.0.x
-    let fy = intrinsics.columns.1.y
-    let ox = intrinsics.columns.2.x
-    let oy = intrinsics.columns.2.y
-    contents += "intrinsics = \(intrinsics.toArray())" + "\n"
-    contents += "fx = \(fx)" + "\n"
-    contents += "fy = \(fy)" + "\n"
-    contents += "ox = \(ox)" + "\n"
-    contents += "oy = \(oy)" + "\n"
-    contents += "\n"
-
-    contents += "roll = \(camera.eulerAngles.x)" + "\n" // rotation around the x-axis
-    contents += "pitch = \(camera.eulerAngles.y)" + "\n" // rotation around the y-axis
-    contents += "yaw = \(camera.eulerAngles.z)" + "\n" // rotation around the z-axis
-    contents += "\n"
-
-    try contents.write(to: path, atomically: true, encoding: .utf8)
 }
 
 extension FileHandle {

@@ -45,9 +45,12 @@ struct Requests_GetPositionInput {
 
   var rgbImage: Data = Data()
 
-  /// A 4x4 row-major matrix of the position and orientation of the camera in world coordinate space.
+  /// A 4x4 row-major matrix of the position and orientation of the object in world coordinate space
   /// https://developer.apple.com/documentation/arkit/arcamera/2866108-transform
   var transform: [Float] = []
+
+  /// A 3x3 row-major matrix that converts between the 2D camera plane and 3D world coordinate space.
+  var intrinsics: [Float] = []
 
   /// Camera intrinsics
   var fx: Float = 0
@@ -131,6 +134,7 @@ extension Requests_GetPositionInput: SwiftProtobuf.Message, SwiftProtobuf._Messa
     2: .standard(proto: "depth_map"),
     3: .standard(proto: "rgb_image"),
     4: .same(proto: "transform"),
+    5: .same(proto: "intrinsics"),
     10: .same(proto: "fx"),
     11: .same(proto: "fy"),
     12: .same(proto: "ox"),
@@ -147,6 +151,7 @@ extension Requests_GetPositionInput: SwiftProtobuf.Message, SwiftProtobuf._Messa
       case 2: try { try decoder.decodeSingularBytesField(value: &self.depthMap) }()
       case 3: try { try decoder.decodeSingularBytesField(value: &self.rgbImage) }()
       case 4: try { try decoder.decodeRepeatedFloatField(value: &self.transform) }()
+      case 5: try { try decoder.decodeRepeatedFloatField(value: &self.intrinsics) }()
       case 10: try { try decoder.decodeSingularFloatField(value: &self.fx) }()
       case 11: try { try decoder.decodeSingularFloatField(value: &self.fy) }()
       case 12: try { try decoder.decodeSingularFloatField(value: &self.ox) }()
@@ -169,6 +174,9 @@ extension Requests_GetPositionInput: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if !self.transform.isEmpty {
       try visitor.visitPackedFloatField(value: self.transform, fieldNumber: 4)
     }
+    if !self.intrinsics.isEmpty {
+      try visitor.visitPackedFloatField(value: self.intrinsics, fieldNumber: 5)
+    }
     if self.fx != 0 {
       try visitor.visitSingularFloatField(value: self.fx, fieldNumber: 10)
     }
@@ -189,6 +197,7 @@ extension Requests_GetPositionInput: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if lhs.depthMap != rhs.depthMap {return false}
     if lhs.rgbImage != rhs.rgbImage {return false}
     if lhs.transform != rhs.transform {return false}
+    if lhs.intrinsics != rhs.intrinsics {return false}
     if lhs.fx != rhs.fx {return false}
     if lhs.fy != rhs.fy {return false}
     if lhs.ox != rhs.ox {return false}

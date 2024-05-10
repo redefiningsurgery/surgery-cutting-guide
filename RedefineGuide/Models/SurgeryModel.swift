@@ -63,15 +63,27 @@ class SurgeryModel: NSObject, ObservableObject {
         }
     }
     
-    func saveFrame() async {
+    func startTracking() async {
         guard let delegate = delegate else {
             logger.warning("saveFrame did nothing because delegate is nil")
             return
         }
         do {
-            try await delegate.saveFrame()
+            try await delegate.startTracking()
         } catch {
             logger.error("saveFrame: \(error.localizedDescription)")
+        }
+    }
+    
+    func saveSnapshot() async {
+        guard let delegate = delegate else {
+            logger.warning("saveSnapshot did nothing because delegate is nil")
+            return
+        }
+        do {
+            try await delegate.saveSnapshot()
+        } catch {
+            logger.error("saveSnapshot: \(error.localizedDescription)")
         }
     }
 }
@@ -80,7 +92,8 @@ class SurgeryModel: NSObject, ObservableObject {
 protocol SurgeryModelDelegate: AnyObject {
     func getARView() throws -> ARSCNView
     func resetWorldOrigin() throws
-    func saveFrame() async throws
+    func startTracking() async throws
     func startSession() async throws
     func stopSession() async throws
+    func saveSnapshot() async throws
 }

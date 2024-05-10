@@ -229,13 +229,26 @@ extension SurgeryController: SurgeryModelDelegate {
         sessionId = response.sessionID
     }
     
+    // Saves request data to a file, which is useful when there is no connectivity to the server and you are willing to copy the files manually from the phone to the server
+    func saveSnapshot() async throws {
+        guard let frame = await self.sceneView?.session.currentFrame else {
+            throw logger.logAndGetError("Could not get current AR frame")
+        }
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let sessionId = dateFormatter.string(from: Date())
+        // use a fake session ID
+        let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
+        try saveTrackingRequest(request)
+    }
+    
     func stopSession() async throws {
         removeOverlayModel()
         sessionId = nil
         // todo: notify the server so it can close the session
     }
     
-    func saveFrame() async throws {
+    func startTracking() async throws {
         guard let frame = await self.sceneView?.session.currentFrame else {
             throw logger.logAndGetError("Could not get current AR frame")
         }
@@ -243,13 +256,14 @@ extension SurgeryController: SurgeryModelDelegate {
             throw logger.logAndGetError("No session ID present.")
         }
         
+        let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
+        let requestData = try request.serializedData()
+
         #if DEBUG
-            let frameDirectory = try saveArFrame(frame)
-            logger.info("Saved frame to \(frameDirectory.absoluteString)")
+            try saveTrackingRequest(request)
         #endif
         
-        let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
-        let response = try await executeRequest(of: Requests_GetPositionOutput.self, method: "POST", path: "sessions/\(sessionId)", body: request)
+        let response = try await executeRequest(of: Requests_GetPositionOutput.self, method: "POST", path: "sessions/\(sessionId)", body: requestData)
         
         logger.info("Transform: \(response.transform)")
 
