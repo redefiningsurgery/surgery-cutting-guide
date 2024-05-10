@@ -235,7 +235,7 @@ extension SurgeryController: SurgeryModelDelegate {
         // todo: notify the server so it can close the session
     }
     
-    func saveFrame() async throws {
+    func startTracking() async throws {
         guard let frame = await self.sceneView?.session.currentFrame else {
             throw logger.logAndGetError("Could not get current AR frame")
         }
@@ -243,12 +243,14 @@ extension SurgeryController: SurgeryModelDelegate {
             throw logger.logAndGetError("No session ID present.")
         }
         
-        #if DEBUG
-            let frameDirectory = try saveArFrame(frame)
+        let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
+        let requestData = try request.serializedData()
+
+#if DEBUG
+            let frameDirectory = try saveArFrame(sessionId, request)
             logger.info("Saved frame to \(frameDirectory.absoluteString)")
         #endif
         
-        let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
         let response = try await executeRequest(of: Requests_GetPositionOutput.self, method: "POST", path: "sessions/\(sessionId)", body: request)
         
         logger.info("Transform: \(response.transform)")

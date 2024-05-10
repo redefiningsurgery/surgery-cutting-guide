@@ -16,7 +16,7 @@ struct SurgeryView: View {
                 }).disabled(model.startedSession)
                 Spacer()
                 AsyncButton(action: {
-                    await model.saveFrame()
+                    await model.startTracking()
                 }, label: {
                     Text("Track")
                 }).disabled(!model.startedSession)

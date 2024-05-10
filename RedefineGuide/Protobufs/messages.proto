@@ -25,10 +25,13 @@ message GetPositionInput {
     bytes depth_map = 2;
     bytes rgb_image = 3;
 
-    // A 4x4 row-major matrix of the position and orientation of the camera in world coordinate space.
+    // A 4x4 row-major matrix of the position and orientation of the object in world coordinate space
     // https://developer.apple.com/documentation/arkit/arcamera/2866108-transform
     repeated float transform = 4;
-
+    
+    // A 3x3 row-major matrix that converts between the 2D camera plane and 3D world coordinate space.
+    repeated float intrinsics = 5;
+    
     // Camera intrinsics
     float fx = 10;
     float fy = 11;
