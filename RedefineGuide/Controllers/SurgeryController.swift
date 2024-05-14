@@ -19,6 +19,9 @@ class SurgeryController: NSObject {
     private var overlayPosition: OverlayPosition = .frontOfCamera
     private var showOverlaySubscription: AnyCancellable?
     private var sessionId: String? = nil
+    private var trackingTask: Task<(), Never>? = nil
+    /// The number of times the tracking has been updated.  Each time is a trip to the server
+    private var trackingCount: Int = 0
 
     override init() {
         model = SurgeryModel()
@@ -62,7 +65,15 @@ class SurgeryController: NSObject {
 
         // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
         let modelNode = SCNNode(mdlObject: modelObject)
-        modelNode.scaleToWidth(20)
+        
+        let (min, max) = modelNode.boundingBox
+        let width = max.x - min.x
+        let height = max.y - min.y
+        let depth = max.z - min.z
+        logger.info("CAD native dimensions: width=\(width), height=\(height), depth=\(depth)")
+        
+        // temporary hack to get the model sized properly
+        //modelNode.scaleToWidth(centimeters: 20)
         // make it translucent
         modelNode.opacity = 0.5
         // rotate the model up
@@ -101,7 +112,7 @@ class SurgeryController: NSObject {
 
         let cameraTransform = currentFrame.camera.transform
         let simdQuaternion = simd_quaternion(cameraTransform)
-
+        
         // Convert simd_quatf (quaternion) to SCNQuaternion (or SCNVector4)
         let scnQuaternion = SCNQuaternion(simdQuaternion.vector.x, simdQuaternion.vector.y, simdQuaternion.vector.z, simdQuaternion.vector.w)
 
@@ -128,8 +139,6 @@ extension SurgeryController: ARSCNViewDelegate {
 extension SurgeryController: ARSessionDelegate {
     /// Called every time the ARFrame is updated
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        // frame.sceneDepth?.depthMap
-        
         // if this is the first frame in the session, adjust the world origin so the center is slightly in front of the phone
         if !adjustedWorldOrigin {
             adjustedWorldOrigin = true
@@ -165,8 +174,6 @@ extension SurgeryController: SurgeryModelDelegate {
         sceneView.automaticallyUpdatesLighting = true
         sceneView.debugOptions = [
             .showWorldOrigin,
-            // show the feature points that ARKit uses for tracking https://developer.apple.com/documentation/arkit/arframe/2887449-rawfeaturepoints
-            .showFeaturePoints,
         ]
         sceneView.delegate = self
         
@@ -243,12 +250,48 @@ extension SurgeryController: SurgeryModelDelegate {
     }
     
     func stopSession() async throws {
+        if let trackingTask = trackingTask, !trackingTask.isCancelled {
+            trackingTask.cancel()
+            await trackingTask.value
+        } else {
+            logger.warning("Session did not have a tracking task")
+        }
         removeOverlayModel()
         sessionId = nil
+        trackingCount = 0
         // todo: notify the server so it can close the session
     }
     
+    /// Begins the ongoing process of tracking the position of the bone.
     func startTracking() async throws {
+        self.trackingTask = createTrackingTask()
+    }
+    
+    func createTrackingTask() -> Task<(), Never> {
+        let trackingSessionId = sessionId
+        
+        return Task(priority: .medium) {
+            while (self.sessionId == trackingSessionId) {
+                guard !Task.isCancelled else {
+                    self.logger.info("Tracking task ended.")
+                    return
+                }
+                guard maxTrackingFrames == 0 || trackingCount < maxTrackingFrames else {
+                    self.logger.info("Stopped after maxTrackingFrames \(maxTrackingFrames) frames")
+                    return
+                }
+                do {
+                    try await trackOnce()
+                } catch {
+                    // todo: this should immediately end the session with some kind of failure
+                    logger.error("Tracking failed: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    /// Makes a request to the server and updates the overlay position accordingly
+    func trackOnce() async throws {
         guard let frame = await self.sceneView?.session.currentFrame else {
             throw logger.logAndGetError("Could not get current AR frame")
         }
@@ -258,14 +301,17 @@ extension SurgeryController: SurgeryModelDelegate {
         
         let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
         let requestData = try request.serializedData()
+        trackingCount += 1
 
         #if DEBUG
             try saveTrackingRequest(request)
         #endif
         
         let response = try await executeRequest(of: Requests_GetPositionOutput.self, method: "POST", path: "sessions/\(sessionId)", body: requestData)
-        
-        logger.info("Transform: \(response.transform)")
+        guard !Task.isCancelled else {
+            return
+        }
+        logger.info("Tracking update \(trackingCount) Frame timestamp: \(frame.timestamp) Transform: \(response.transform)")
 
         guard let resultTransform = createSim4Float4x4(response.transform)?.transpose else {
             throw logger.logAndGetError("Result transform was invalid")
@@ -279,12 +325,16 @@ extension SurgeryController: SurgeryModelDelegate {
         let orientationVector = simd_quaternion(resultTransform).vector
         let orientation = SCNQuaternion(orientationVector.x, orientationVector.y, orientationVector.z, orientationVector.w)
         await MainActor.run {
+            guard !Task.isCancelled else {
+                return
+            }
             logger.info("Fixing overlay at position \(position) and orientation \(orientation)")
             overlayNode.position = position
             overlayNode.orientation = orientation
             overlayNode.opacity = 0.8 // show more of it
         }
     }
+
 }
 
 // Helper function to create a combined rotation and translation matrix
