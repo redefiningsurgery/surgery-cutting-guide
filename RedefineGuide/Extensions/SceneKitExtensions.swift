@@ -22,7 +22,7 @@ extension SCNNode {
     }
     
     /// Scales the node so it has the specified width in centimeters.
-    func scaleToWidth(_ centimeters: Float) {
+    func scaleToWidth(centimeters: Float) {
         let (min, max) = self.boundingBox
         let currentWidth = max.x - min.x
         let targetWidth = Float(centimeters) / 100.0
