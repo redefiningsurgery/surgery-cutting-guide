@@ -6,17 +6,11 @@ import Combine
 import SwiftProtobuf
 
 class SurgeryController: NSObject {
-    enum OverlayPosition {
-        case frontOfCamera
-        case fixed
-    }
-
     let model: SurgeryModel
     private var logger = RedefineLogger("SurgeryController")
     private var sceneView: ARSCNView? = nil
     private var scene: SCNScene? = nil
     private var overlayNode: SCNNode?
-    private var overlayPosition: OverlayPosition = .frontOfCamera
     private var showOverlaySubscription: AnyCancellable?
     private var sessionId: String? = nil
     private var trackingTask: Task<(), Never>? = nil
@@ -54,11 +48,7 @@ class SurgeryController: NSObject {
         logger.info("Started AR session")
     }
 
-    func addOverlayModel(_ data: Data) throws {
-        guard overlayNode == nil, let scene = scene else {
-            throw logger.logAndGetError("addOverlayModel called but overlayModel already existed or scene was missing")
-        }
-
+    func loadOverlay(_ data: Data) throws {
         let modelAsset = try loadMDLAsset(data)
         modelAsset.loadTextures()
         let modelObject = modelAsset.object(at: 0)
@@ -80,10 +70,6 @@ class SurgeryController: NSObject {
         // modelNode.rotate(x: 90, y: 90, z: 0)
 
         overlayNode = modelNode // Store the reference
-        overlayPosition = .frontOfCamera
-        updateOverlayModelPosition()
-        scene.rootNode.addChildNode(modelNode)
-        logger.info("Added model to scene")
     }
 
     func updateOverlayModelPosition() {
@@ -91,33 +77,25 @@ class SurgeryController: NSObject {
             logger.warning("Could not get current ARFrame to update position of Overlay")
             return
         }
-        guard let overlayModel = overlayNode else {
+        guard let overlayNode = overlayNode else {
             logger.warning("No leading Overlay to update position for")
-            return
-        }
-        guard overlayPosition == .frontOfCamera else {
-            logger.warning("updateOverlayModelPosition called but it should not be floating in front of the camera")
             return
         }
         
         // Use the camera's transform to get its current orientation and position
         let transform = currentFrame.camera.transform
         let cameraPosition = SCNVector3(transform.columns.3.x, transform.columns.3.y, transform.columns.3.z)
-        
+
         // Calculate the forward vector from the camera transform
-        let forward = SCNVector3(-transform.columns.2.x, -transform.columns.2.y, -transform.columns.2.z)
-        let adjustedForward = forward.normalized() * 0.5 // Adjust to be 0.5 meters in front
-        
-        overlayModel.position =  adjustedForward + cameraPosition
+        let forwardVector = SCNVector3(-transform.columns.2.x, -transform.columns.2.y, -transform.columns.2.z)
+        let adjustedForwardPosition = forwardVector.normalized() * 0.2 // Adjust to be 0.2 meters in front
 
-        let cameraTransform = currentFrame.camera.transform
-        let simdQuaternion = simd_quaternion(cameraTransform)
-        
-        // Convert simd_quatf (quaternion) to SCNQuaternion (or SCNVector4)
-        let scnQuaternion = SCNQuaternion(simdQuaternion.vector.x, simdQuaternion.vector.y, simdQuaternion.vector.z, simdQuaternion.vector.w)
+        overlayNode.position = cameraPosition + adjustedForwardPosition
 
-        // Assign the converted quaternion to your node
-        overlayModel.orientation = scnQuaternion
+//        // Reset the orientation of the model to be upright, and rotate it to face the camera
+//        overlayModel.eulerAngles.y = atan2(forwardVector.x, forwardVector.z)
+//        overlayModel.eulerAngles.x = 0
+//        overlayModel.eulerAngles.z = 0
     }
     
     func removeOverlayModel() {
@@ -129,7 +107,15 @@ class SurgeryController: NSObject {
 extension SurgeryController: ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         DispatchQueue.main.async {
-            if self.overlayNode != nil && self.overlayPosition == .frontOfCamera {
+            if self.model.phase == .aligning {
+                guard let overlayNode = self.overlayNode else {
+                    self.logger.error("Aligning but no overlayNode was present")
+                    return
+                }
+                if overlayNode.parent == nil, let scene = self.scene {
+                    self.logger.info("Adding overlay to the scene")
+                    scene.rootNode.addChildNode(overlayNode)
+                }
                 self.updateOverlayModelPosition()
             }
         }
@@ -172,9 +158,9 @@ extension SurgeryController: SurgeryModelDelegate {
         }
         let sceneView = ARSCNView()
         sceneView.automaticallyUpdatesLighting = true
-        sceneView.debugOptions = [
-            .showWorldOrigin,
-        ]
+//        sceneView.debugOptions = [
+//            .showWorldOrigin,
+//        ]
         sceneView.delegate = self
         
         let scene = SCNScene()
@@ -226,14 +212,20 @@ extension SurgeryController: SurgeryModelDelegate {
     }
 
     func startSession() async throws {
+        await MainActor.run {
+            model.phase = .starting
+        }
         let response = try await executeRequest(of: Requests_GetModelOutput.self, method: "PUT", path: "sessions")
         
         guard !response.sessionID.isEmpty else {
             throw logger.logAndGetError("No session ID passed from server")
         }
         
-        try addOverlayModel(response.model)
+        try loadOverlay(response.model)
         sessionId = response.sessionID
+        await MainActor.run {
+            model.phase = .aligning
+        }
     }
     
     // Saves request data to a file, which is useful when there is no connectivity to the server and you are willing to copy the files manually from the phone to the server
@@ -259,11 +251,31 @@ extension SurgeryController: SurgeryModelDelegate {
         removeOverlayModel()
         sessionId = nil
         trackingCount = 0
+        
+        await MainActor.run {
+            model.phase = .done
+        }
+
         // todo: notify the server so it can close the session
     }
     
     /// Begins the ongoing process of tracking the position of the bone.
     func startTracking() async throws {
+        await MainActor.run {
+            model.phase = .initializingTracking
+        }
+        do {
+            try await trackOnce()
+        } catch {
+            // todo: this should immediately end the session with some kind of failure
+            logger.error("Tracking failed: \(error.localizedDescription)")
+        }
+
+        await MainActor.run {
+            model.phase = .tracking
+        }
+
+        // starts the ongoing tracking
         self.trackingTask = createTrackingTask()
     }
     
@@ -320,7 +332,6 @@ extension SurgeryController: SurgeryModelDelegate {
             throw logger.logAndGetError("Overlay was not present")
         }
         
-        overlayPosition = .fixed
         let position = SCNVector3(resultTransform.columns.3.x, resultTransform.columns.3.y, resultTransform.columns.3.z)
         let orientationVector = simd_quaternion(resultTransform).vector
         let orientation = SCNQuaternion(orientationVector.x, orientationVector.y, orientationVector.z, orientationVector.w)

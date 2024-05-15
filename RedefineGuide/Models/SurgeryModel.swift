@@ -1,9 +1,26 @@
 import Foundation
 import ARKit
 
-class SurgeryModel: NSObject, ObservableObject {
+enum SurgeryPhase {
+    case notStarted
+    case starting
+    case aligning
+    case initializingTracking
+    case tracking
+    case done
+}
 
-    @Published var startedSession = false
+
+class SurgeryModel: NSObject, ObservableObject {
+    
+    @Published @MainActor var phase: SurgeryPhase = .notStarted
+    
+    /// Indicates whether the recorder has encountered an error and it has not been dismissed by the user
+    @Published var errorVisible: Bool = false
+    /// Only useful if errorExists is true.  Contains a short message like "Error starting recording", which can be used as a title for alerts
+    @Published private(set) var errorTitle: String = ""
+    /// Only useful if errorExists is true.  Contains some details of the error message like: "Device is in low power mode.  Turn off low power mode to re-enable recording"
+    @Published private(set) var errorMessage: String = ""
 
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")
@@ -33,48 +50,59 @@ class SurgeryModel: NSObject, ObservableObject {
         }
     }
 
-    func startSession() async {
+    @MainActor
+    func startSession() {
         guard let delegate = delegate else {
             logger.warning("startSession did nothing because delegate is nil")
+            phase = .starting
             return
         }
-        do {
-            try await delegate.startSession()
-            await MainActor.run {
-                startedSession = true
+        Task(priority: .high) {
+            do {
+                try await delegate.startSession()
+            } catch {
+                logger.error("startSession: \(error.localizedDescription)")
+                self.errorVisible = true
+                self.errorTitle = "Could not start procedure."
             }
-        } catch {
-            logger.error("startSession: \(error.localizedDescription)")
         }
     }
     
-    func stopSession() async {
+    @MainActor
+    func stopSession() {
         guard let delegate = delegate else {
             logger.warning("stopSession did nothing because delegate is nil")
             return
         }
-        do {
-            try await delegate.stopSession()
-            await MainActor.run {
-                startedSession = false
+        Task(priority: .high) {
+            do {
+                try await delegate.stopSession()
+            } catch {
+                logger.error("stopSession: \(error.localizedDescription)")
+                self.errorVisible = true
+                self.errorTitle = "Could not stop procedure."
             }
-        } catch {
-            logger.error("stopSession: \(error.localizedDescription)")
         }
     }
     
-    func startTracking() async {
+    @MainActor
+    func startTracking() {
         guard let delegate = delegate else {
-            logger.warning("saveFrame did nothing because delegate is nil")
+            logger.warning("startTracking did nothing because delegate is nil")
             return
         }
-        do {
-            try await delegate.startTracking()
-        } catch {
-            logger.error("saveFrame: \(error.localizedDescription)")
+        Task(priority: .high) {
+            do {
+                try await delegate.startTracking()
+            } catch {
+                logger.error("startTracking: \(error.localizedDescription)")
+                self.errorVisible = true
+                self.errorTitle = "Could not start tracking."
+            }
         }
     }
-    
+
+    // you can probably get rid of this now
     func saveSnapshot() async {
         guard let delegate = delegate else {
             logger.warning("saveSnapshot did nothing because delegate is nil")
