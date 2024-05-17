@@ -56,9 +56,16 @@ struct SurgeryView: View {
                 ARViewContainer(model: model)
             }
             .overlay(alignment: .top) {
-                Text("Align the femur with the overlay and press Start")
-                    .font(.title)
+                Text("Align the femur with the overlay and press the start button")
+                    .font(.callout)
+                    .multilineTextAlignment(.center)
                     .padding()
+                    .foregroundColor(.green)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(.green)
+                            .opacity(0.5)
+                    )
             }
             .overlay(alignment: .bottom) {
                 Button(action: {
@@ -92,7 +99,7 @@ struct SurgeryView: View {
                 VStack {
                     Text("Locking Onto Femur")
                         .font(.title)
-                    Text("This takes about 6 seconds")
+                    Text("This takes about 12 seconds")
                     ProgressView()
                         .scaleEffect(2)
                         .padding()

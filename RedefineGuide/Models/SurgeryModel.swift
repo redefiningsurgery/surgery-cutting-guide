@@ -49,6 +49,13 @@ class SurgeryModel: NSObject, ObservableObject {
             logger.error("Error resetWorldOrigin: \(error.localizedDescription)")
         }
     }
+    
+    @MainActor
+    func setError(errorTitle: String, errorMessage: String) {
+        self.errorVisible = true
+        self.errorTitle = errorTitle
+        self.errorMessage = errorMessage
+    }
 
     @MainActor
     func startSession() {
@@ -62,8 +69,7 @@ class SurgeryModel: NSObject, ObservableObject {
                 try await delegate.startSession()
             } catch {
                 logger.error("startSession: \(error.localizedDescription)")
-                self.errorVisible = true
-                self.errorTitle = "Could not start procedure."
+                setError(errorTitle: "Could not start procedure", errorMessage: error.localizedDescription)
             }
         }
     }
@@ -79,8 +85,7 @@ class SurgeryModel: NSObject, ObservableObject {
                 try await delegate.stopSession()
             } catch {
                 logger.error("stopSession: \(error.localizedDescription)")
-                self.errorVisible = true
-                self.errorTitle = "Could not stop procedure."
+                setError(errorTitle: "Could not stop procedure", errorMessage: error.localizedDescription)
             }
         }
     }
@@ -96,8 +101,7 @@ class SurgeryModel: NSObject, ObservableObject {
                 try await delegate.startTracking()
             } catch {
                 logger.error("startTracking: \(error.localizedDescription)")
-                self.errorVisible = true
-                self.errorTitle = "Could not start tracking."
+                setError(errorTitle: "Could not start tracking", errorMessage: error.localizedDescription)
             }
         }
     }

@@ -42,7 +42,7 @@ class SurgeryController: NSObject {
         // https://developer.apple.com/documentation/arkit/arkit_in_ios/content_anchors/scanning_and_detecting_3d_objects
         configuration.planeDetection = .horizontal
         configuration.isAutoFocusEnabled = true
-
+ 
         sceneView.session.delegate = self
         sceneView.session.run(configuration, options: [.resetTracking])
         logger.info("Started AR session")
@@ -61,20 +61,19 @@ class SurgeryController: NSObject {
         let height = max.y - min.y
         let depth = max.z - min.z
         logger.info("CAD native dimensions: width=\(width), height=\(height), depth=\(depth)")
-        
+
         // temporary hack to get the model sized properly
         //modelNode.scaleToWidth(centimeters: 20)
         // make it translucent
         modelNode.opacity = 0.5
-        // rotate the model up
-        // modelNode.rotate(x: 90, y: 90, z: 0)
+        // rotate the model up and tilt it slightly.  remember, the femur comes from the upper leg, so the base points up
+        modelNode.rotate(x: 0, y: 0, z: 90)
 
         overlayNode = modelNode // Store the reference
     }
 
     func updateOverlayModelPosition() {
         guard let currentFrame = sceneView?.session.currentFrame else {
-            logger.warning("Could not get current ARFrame to update position of Overlay")
             return
         }
         guard let overlayNode = overlayNode else {
@@ -92,6 +91,7 @@ class SurgeryController: NSObject {
 
         overlayNode.position = cameraPosition + adjustedForwardPosition
 
+        
 //        // Reset the orientation of the model to be upright, and rotate it to face the camera
 //        overlayModel.eulerAngles.y = atan2(forwardVector.x, forwardVector.z)
 //        overlayModel.eulerAngles.x = 0
@@ -259,17 +259,13 @@ extension SurgeryController: SurgeryModelDelegate {
         // todo: notify the server so it can close the session
     }
     
-    /// Begins the ongoing process of tracking the position of the bone.
+    /// Begins the ongoing process of tracking the position of the bone.  This makes a single pose request to the server, so this is a long-running operation
     func startTracking() async throws {
         await MainActor.run {
             model.phase = .initializingTracking
         }
-        do {
-            try await trackOnce()
-        } catch {
-            // todo: this should immediately end the session with some kind of failure
-            logger.error("Tracking failed: \(error.localizedDescription)")
-        }
+
+        try await trackOnce()
 
         await MainActor.run {
             model.phase = .tracking
@@ -295,8 +291,10 @@ extension SurgeryController: SurgeryModelDelegate {
                 do {
                     try await trackOnce()
                 } catch {
-                    // todo: this should immediately end the session with some kind of failure
                     logger.error("Tracking failed: \(error.localizedDescription)")
+                    await model.setError(errorTitle: "Tracking failed", errorMessage: error.localizedDescription)
+                    // TODO: user should be able to retry, in which case this should not return
+                    return
                 }
             }
         }
