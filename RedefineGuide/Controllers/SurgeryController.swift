@@ -11,11 +11,13 @@ class SurgeryController: NSObject {
     private var sceneView: ARSCNView? = nil
     private var scene: SCNScene? = nil
     private var overlayNode: SCNNode?
+    private var pinGuideNode: SCNNode?
     private var showOverlaySubscription: AnyCancellable?
     private var sessionId: String? = nil
     private var trackingTask: Task<(), Never>? = nil
     /// The number of times the tracking has been updated.  Each time is a trip to the server
     private var trackingCount: Int = 0
+    private var addedOverlayToScene: Bool = false
 
     override init() {
         model = SurgeryModel()
@@ -30,13 +32,10 @@ class SurgeryController: NSObject {
         logger.info("Stopped AR session")
     }
     
-    private var adjustedWorldOrigin = false
-    
     private func startArSession() throws {
         guard let sceneView = sceneView else {
             throw logger.logAndGetError("No sceneView.  Cannot start ARSession")
         }
-        adjustedWorldOrigin = false
         let configuration = ARWorldTrackingConfiguration()
         configuration.frameSemantics.insert(.sceneDepth)
         // https://developer.apple.com/documentation/arkit/arkit_in_ios/content_anchors/scanning_and_detecting_3d_objects
@@ -55,7 +54,7 @@ class SurgeryController: NSObject {
 
         // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
         let modelNode = SCNNode(mdlObject: modelObject)
-        
+
         let (min, max) = modelNode.boundingBox
         let width = max.x - min.x
         let height = max.y - min.y
@@ -67,83 +66,53 @@ class SurgeryController: NSObject {
         // make it translucent
         modelNode.opacity = 0.5
         // rotate the model up and tilt it slightly.  remember, the femur comes from the upper leg, so the base points up
-        modelNode.rotate(x: 0, y: 0, z: 90)
+        modelNode.rotate(x: 0, y: 0, z: 0)
 
         overlayNode = modelNode // Store the reference
     }
-
-    func updateOverlayModelPosition() {
-        guard let currentFrame = sceneView?.session.currentFrame else {
-            return
-        }
-        guard let overlayNode = overlayNode else {
-            logger.warning("No leading Overlay to update position for")
-            return
-        }
-        
-        // Use the camera's transform to get its current orientation and position
-        let transform = currentFrame.camera.transform
-        let cameraPosition = SCNVector3(transform.columns.3.x, transform.columns.3.y, transform.columns.3.z)
-
-        // Calculate the forward vector from the camera transform
-        let forwardVector = SCNVector3(-transform.columns.2.x, -transform.columns.2.y, -transform.columns.2.z)
-        let adjustedForwardPosition = forwardVector.normalized() * 0.2 // Adjust to be 0.2 meters in front
-
-        overlayNode.position = cameraPosition + adjustedForwardPosition
-
-        
-//        // Reset the orientation of the model to be upright, and rotate it to face the camera
-//        overlayModel.eulerAngles.y = atan2(forwardVector.x, forwardVector.z)
-//        overlayModel.eulerAngles.x = 0
-//        overlayModel.eulerAngles.z = 0
-    }
     
     func removeOverlayModel() {
-        overlayNode?.removeFromParentNode()
-        overlayNode = nil
+        if let overlayNode = self.overlayNode {
+            logger.info("Removed overlay")
+            overlayNode.removeFromParentNode()
+            self.overlayNode = nil
+            self.addedOverlayToScene = false
+        }
+    }
+    
+    func addOverlayToScene(overlayNode: SCNNode, scene: SCNScene) {
+        self.logger.info("Adding overlay to the scene")
+        scene.rootNode.addChildNode(overlayNode)
+        addedOverlayToScene = true
     }
 }
 
 extension SurgeryController: ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        DispatchQueue.main.async {
-            if self.model.phase == .aligning {
-                guard let overlayNode = self.overlayNode else {
-                    self.logger.error("Aligning but no overlayNode was present")
-                    return
-                }
-                if overlayNode.parent == nil, let scene = self.scene {
-                    self.logger.info("Adding overlay to the scene")
-                    scene.rootNode.addChildNode(overlayNode)
-                }
-                self.updateOverlayModelPosition()
-            }
-        }
+
     }
 }
 
 extension SurgeryController: ARSessionDelegate {
     /// Called every time the ARFrame is updated
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        // if this is the first frame in the session, adjust the world origin so the center is slightly in front of the phone
-        if !adjustedWorldOrigin {
-            adjustedWorldOrigin = true
-            
-            DispatchQueue.main.async {
-                // Get the current orientation of the device in terms of camera transform
-                let currentTransform = frame.camera.transform
-
-                // Define the desired shift and rotation
-                let desiredShiftAndRotation = simd_make_float4x4(translation: [-0.0, -0.0, -0.5], rotation: (pitch: 0, yaw: 0, roll: 0))
-
-                // Combine the current orientation with the desired transformation
-                let combinedTransform = simd_mul(currentTransform, desiredShiftAndRotation)
-
-                // Apply the combined transformation as the new world origin
-                session.setWorldOrigin(relativeTransform: combinedTransform)
-                self.logger.trace("Adjusted world origin")
+        DispatchQueue.main.async {
+            // add the overlay if necessary, and update its position during alignment to right in front of the camera
+            if self.model.phase == .aligning, let overlayNode = self.overlayNode, let scene = self.scene {
+                if !self.addedOverlayToScene {
+                    self.addOverlayToScene(overlayNode: overlayNode, scene: scene)
+                }
+                if overlayNode.parent == nil {
+                    self.logger.error("OVERLAY GOT REMOVED DURING ALIGNMENT!!!!")
+                }
+                overlayNode.position = getPositionInFrontOfCamera(cameraTransform: frame.camera.transform, distanceMeters: 0.2)
+            }
+            // just a spot check because this might have happened.  if this doesn't occur for a while, remove it
+            if self.addedOverlayToScene, self.overlayNode?.parent == nil {
+                self.logger.error("OVERLAY GOT REMOVED FROM THE SCENE")
             }
         }
+        // if this is the first frame in the session, adjust the world origin so the center is slightly in front of the phone
     }
 }
 
@@ -251,6 +220,7 @@ extension SurgeryController: SurgeryModelDelegate {
         removeOverlayModel()
         sessionId = nil
         trackingCount = 0
+        // todo: stop the AR session and set adjustedWorldOrigin to false
         
         await MainActor.run {
             model.phase = .done
@@ -333,6 +303,11 @@ extension SurgeryController: SurgeryModelDelegate {
         let position = SCNVector3(resultTransform.columns.3.x, resultTransform.columns.3.y, resultTransform.columns.3.z)
         let orientationVector = simd_quaternion(resultTransform).vector
         let orientation = SCNQuaternion(orientationVector.x, orientationVector.y, orientationVector.z, orientationVector.w)
+        if self.pinGuideNode == nil {
+            self.pinGuideNode = createAxis()
+        }
+        let axis = self.pinGuideNode!
+
         await MainActor.run {
             guard !Task.isCancelled else {
                 return
@@ -341,6 +316,14 @@ extension SurgeryController: SurgeryModelDelegate {
             overlayNode.position = position
             overlayNode.orientation = orientation
             overlayNode.opacity = 0.8 // show more of it
+
+            if axis.parent == nil {
+                axis.position = SCNVector3(x: 0.06, y: 0, z: 0)
+                axis.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
+                
+                // WIP: add the axis for the first pin
+                overlayNode.addChildNode(axis)
+            }
         }
     }
 
