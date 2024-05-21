@@ -218,9 +218,14 @@ extension SurgeryController: SurgeryModelDelegate {
             logger.warning("Session did not have a tracking task")
         }
         removeOverlayModel()
-        sessionId = nil
+        let sessionId = sessionId
+        self.sessionId = nil
         trackingCount = 0
         // todo: stop the AR session and set adjustedWorldOrigin to false
+
+        if sessionId != nil {
+            let _ = try await executeRequest(of: Requests_GetModelOutput.self, method: "DELETE", path: "sessions/\(sessionId!)")
+        }
         
         await MainActor.run {
             model.phase = .done
