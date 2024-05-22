@@ -40,7 +40,9 @@ func createAxis() -> SCNNode {
     let material = SCNMaterial()
     material.diffuse.contents = UIColor.red  // Color can be changed based on the axis color requirement
     material.specular.contents = UIColor.white  // Highlights
-//    material.metalness.contents = 1.0  // Metal-like properties
+    material.transparency = 0.5 // Semi-transparent
+    material.fillMode = .lines // outline
+    //    material.metalness.contents = 1.0  // Metal-like properties
     cylinder.materials = [material]
 
     // Create a node for the cylinder

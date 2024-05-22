@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		9704FBB72BE56F1B00EDBA81 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 9704FBB62BE56F1B00EDBA81 /* SwiftProtobuf */; };
+		971019AC2BFCEF0C00A7F792 /* sample-femur.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 971019AB2BFCEF0C00A7F792 /* sample-femur.usdz */; };
+		971019AE2BFCEF5000A7F792 /* Development.swift in Sources */ = {isa = PBXBuildFile; fileRef = 971019AD2BFCEF5000A7F792 /* Development.swift */; };
+		971019B02BFCF13100A7F792 /* DevController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 971019AF2BFCF13100A7F792 /* DevController.swift */; };
 		9710BDE42BE5629700D30434 /* messages.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9710BDE32BE5629700D30434 /* messages.pb.swift */; };
 		973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */; };
 		973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEE2BBF3FF70083CBED /* RootView.swift */; };
@@ -57,6 +60,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		971019AB2BFCEF0C00A7F792 /* sample-femur.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "sample-femur.usdz"; sourceTree = "<group>"; };
+		971019AD2BFCEF5000A7F792 /* Development.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Development.swift; sourceTree = "<group>"; };
+		971019AF2BFCF13100A7F792 /* DevController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevController.swift; sourceTree = "<group>"; };
 		9710BDE12BE5626200D30434 /* messages.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.protobuf; path = messages.proto; sourceTree = "<group>"; };
 		9710BDE32BE5629700D30434 /* messages.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = messages.pb.swift; sourceTree = "<group>"; };
 		973AEEE92BBF3FF70083CBED /* RedefineGuide.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RedefineGuide.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -173,6 +179,7 @@
 				973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */,
 				973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */,
 				973AEEF02BBF3FF90083CBED /* Assets.xcassets */,
+				971019AB2BFCEF0C00A7F792 /* sample-femur.usdz */,
 				97936C952BD6DF47005930F4 /* CCode */,
 				973AEF1C2BBF425B0083CBED /* Controllers */,
 				977429EC2BC70D850069F4BA /* Extensions */,
@@ -215,6 +222,7 @@
 			children = (
 				973AEF322BBFAC3F0083CBED /* AppInitializer.swift */,
 				973AEF382BBFB3670083CBED /* SurgeryController.swift */,
+				971019AF2BFCF13100A7F792 /* DevController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -227,6 +235,7 @@
 				973AEF1F2BBF427D0083CBED /* AsyncButton.swift */,
 				973AEF302BBFAB250083CBED /* ARViewContainer.swift */,
 				973AEF3A2BC433EE0083CBED /* SurgeryView.swift */,
+				971019AD2BFCEF5000A7F792 /* Development.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -372,6 +381,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				971019AC2BFCEF0C00A7F792 /* sample-femur.usdz in Resources */,
 				973AEEF42BBF3FF90083CBED /* Preview Assets.xcassets in Resources */,
 				97C705112BFE455000194835 /* Settings.bundle in Resources */,
 				973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */,
@@ -400,6 +410,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				973AEF2D2BBFAA080083CBED /* ThreadSafeQueue.swift in Sources */,
+				971019B02BFCF13100A7F792 /* DevController.swift in Sources */,
 				973AEF2F2BBFAA6F0083CBED /* Constants.swift in Sources */,
 				973AEF1B2BBF42390083CBED /* LifecycleEventMonitor.swift in Sources */,
 				973AEF352BBFAC6E0083CBED /* AppInitializationModel.swift in Sources */,
@@ -408,6 +419,7 @@
 				973AEF312BBFAB250083CBED /* ARViewContainer.swift in Sources */,
 				97936C9E2BD6DF9A005930F4 /* lodepng.cpp in Sources */,
 				97C705132BFE659A00194835 /* Settings.swift in Sources */,
+				971019AE2BFCEF5000A7F792 /* Development.swift in Sources */,
 				973AEF202BBF427D0083CBED /* AsyncButton.swift in Sources */,
 				973AEF2C2BBFAA080083CBED /* ThreadSafeDictionary.swift in Sources */,
 				973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */,
