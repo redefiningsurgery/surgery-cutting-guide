@@ -35,6 +35,8 @@
 		97936C8F2BD6DDFF005930F4 /* DepthMapSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */; };
 		97936C9D2BD6DF9A005930F4 /* PngEncoder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 97936C9A2BD6DF9A005930F4 /* PngEncoder.mm */; };
 		97936C9E2BD6DF9A005930F4 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97936C9B2BD6DF9A005930F4 /* lodepng.cpp */; };
+		97C705112BFE455000194835 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 97C705102BFE455000194835 /* Settings.bundle */; };
+		97C705132BFE659A00194835 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C705122BFE659A00194835 /* Settings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +92,8 @@
 		97936C9A2BD6DF9A005930F4 /* PngEncoder.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PngEncoder.mm; sourceTree = "<group>"; };
 		97936C9B2BD6DF9A005930F4 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lodepng.cpp; sourceTree = "<group>"; };
 		97936C9C2BD6DF9A005930F4 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lodepng.h; sourceTree = "<group>"; };
+		97C705102BFE455000194835 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
+		97C705122BFE659A00194835 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,6 +169,7 @@
 				973AEF1A2BBF42390083CBED /* LifecycleEventMonitor.swift */,
 				973AEF162BBF41B40083CBED /* Logging.swift */,
 				973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */,
+				97C705122BFE659A00194835 /* Settings.swift */,
 				973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */,
 				973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */,
 				973AEEF02BBF3FF90083CBED /* Assets.xcassets */,
@@ -175,6 +180,7 @@
 				973AEEF22BBF3FF90083CBED /* Preview Content */,
 				9704FBB22BE56CA300EDBA81 /* Protobufs */,
 				973AEF1D2BBF42610083CBED /* Views */,
+				97C705102BFE455000194835 /* Settings.bundle */,
 			);
 			path = RedefineGuide;
 			sourceTree = "<group>";
@@ -367,6 +373,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				973AEEF42BBF3FF90083CBED /* Preview Assets.xcassets in Resources */,
+				97C705112BFE455000194835 /* Settings.bundle in Resources */,
 				973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -400,6 +407,7 @@
 				973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */,
 				973AEF312BBFAB250083CBED /* ARViewContainer.swift in Sources */,
 				97936C9E2BD6DF9A005930F4 /* lodepng.cpp in Sources */,
+				97C705132BFE659A00194835 /* Settings.swift in Sources */,
 				973AEF202BBF427D0083CBED /* AsyncButton.swift in Sources */,
 				973AEF2C2BBFAA080083CBED /* ThreadSafeDictionary.swift in Sources */,
 				973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */,

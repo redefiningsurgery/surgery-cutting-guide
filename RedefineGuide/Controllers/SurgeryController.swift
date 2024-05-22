@@ -122,7 +122,8 @@ extension SurgeryController: SurgeryModelDelegate {
     /// Creates the ARSCNView used to show the camera and added scenery
     func getARView() throws -> ARSCNView {
         if let sceneView = self.sceneView {
-            logger.warning("sceneView was previously created.  Returning that.")
+            // this occurs when ARViewContainer switches, which happens when the model's phase change
+            logger.info("sceneView was previously created.  Returning that.")
             return sceneView
         }
         let sceneView = ARSCNView()
