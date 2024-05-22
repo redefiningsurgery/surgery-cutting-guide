@@ -185,6 +185,11 @@ extension SurgeryController: SurgeryModelDelegate {
         await MainActor.run {
             model.phase = .starting
         }
+        // make sure the settings were configured.  otherwise they will get vague errors and not realize what needs done
+        guard isServerUrlSet() else {
+            throw logger.logAndGetError("Server url has not been set yet.  Please set it in the Settings for the app.")
+        }
+        
         let response = try await executeRequest(of: Requests_GetModelOutput.self, method: "PUT", path: "sessions")
         
         guard !response.sessionID.isEmpty else {
