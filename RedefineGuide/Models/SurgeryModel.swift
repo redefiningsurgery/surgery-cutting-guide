@@ -1,5 +1,6 @@
 import Foundation
 import ARKit
+import RealityKit
 
 enum SurgeryPhase {
     case notStarted
@@ -25,16 +26,16 @@ class SurgeryModel: NSObject, ObservableObject {
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")
 
-    func getARView() -> ARSCNView {
+    func getARView() -> ARView {
         guard let delegate = delegate else {
             logger.warning("Cannot get ARView because delegate is nil")
-            return ARSCNView()
+            return ARView()
         }
         do {
             return try delegate.getARView()
         } catch {
             logger.error("Error getting ARView: \(error.localizedDescription)")
-            return ARSCNView()
+            return ARView()
         }
     }
     
@@ -122,7 +123,7 @@ class SurgeryModel: NSObject, ObservableObject {
 
 
 protocol SurgeryModelDelegate: AnyObject {
-    func getARView() throws -> ARSCNView
+    func getARView() throws -> ARView
     func resetWorldOrigin() throws
     func startTracking() async throws
     func startSession() async throws

@@ -1,4 +1,5 @@
 import SwiftUI
+import RealityKit
 import SceneKit
 import SceneKit.ModelIO
 import ARKit
@@ -8,9 +9,8 @@ import SwiftProtobuf
 class SurgeryController: NSObject {
     let model: SurgeryModel
     private var logger = RedefineLogger("SurgeryController")
-    private var sceneView: ARSCNView? = nil
-    private var scene: SCNScene? = nil
-    private var overlayNode: SCNNode?
+    private var arView: ARView? = nil
+    private var overlayModel: ModelEntity?
     private var pinGuideNode: SCNNode?
     private var showOverlaySubscription: AnyCancellable?
     private var sessionId: String? = nil
@@ -28,68 +28,47 @@ class SurgeryController: NSObject {
     }
     
     func pause() {
-        self.sceneView?.session.pause()
+        self.arView?.session.pause()
         logger.info("Stopped AR session")
     }
     
     private func startArSession() throws {
-        guard let sceneView = sceneView else {
-            throw logger.logAndGetError("No sceneView.  Cannot start ARSession")
+        guard let arView = arView else {
+            throw logger.logAndGetError("No arView.  Cannot start ARSession")
         }
         let configuration = ARWorldTrackingConfiguration()
         configuration.frameSemantics.insert(.sceneDepth)
+        configuration.frameSemantics.insert(.personSegmentationWithDepth)
+        configuration.sceneReconstruction = .mesh
         // https://developer.apple.com/documentation/arkit/arkit_in_ios/content_anchors/scanning_and_detecting_3d_objects
         configuration.planeDetection = .horizontal
         configuration.isAutoFocusEnabled = true
+        configuration.environmentTexturing = .automatic
  
-        sceneView.session.delegate = self
-        sceneView.session.run(configuration, options: [.resetTracking])
+        arView.session.delegate = self
+        arView.session.run(configuration, options: [.resetTracking])
         logger.info("Started AR session")
     }
 
-    func loadOverlay(_ data: Data) throws {
-        let modelAsset = try loadMDLAsset(data)
-        modelAsset.loadTextures()
-        let modelObject = modelAsset.object(at: 0)
-
-        // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
-        let modelNode = SCNNode(mdlObject: modelObject)
-
-        let (min, max) = modelNode.boundingBox
-        let width = max.x - min.x
-        let height = max.y - min.y
-        let depth = max.z - min.z
-        logger.info("CAD native dimensions: width=\(width), height=\(height), depth=\(depth)")
-
-        // temporary hack to get the model sized properly
-        //modelNode.scaleToWidth(centimeters: 20)
-        // make it translucent
-        modelNode.opacity = 0.5
-        // rotate the model up and tilt it slightly.  remember, the femur comes from the upper leg, so the base points up
-        modelNode.rotate(x: 0, y: 0, z: 0)
-
-        overlayNode = modelNode // Store the reference
-    }
-    
     func removeOverlayModel() {
-        if let overlayNode = self.overlayNode {
+        if let overlayModel = self.overlayModel {
             logger.info("Removed overlay")
-            overlayNode.removeFromParentNode()
-            self.overlayNode = nil
+            overlayModel.removeFromParent()
+            self.overlayModel = nil
             self.addedOverlayToScene = false
         }
     }
     
-    func addOverlayToScene(overlayNode: SCNNode, scene: SCNScene) {
+    @MainActor
+    func addOverlayToScene(overlayModel: ModelEntity, arView: ARView) {
         self.logger.info("Adding overlay to the scene")
-        scene.rootNode.addChildNode(overlayNode)
+        
+        let anchor = AnchorEntity(world: [0,0,0])
+        anchor.addChild(overlayModel)
+        
+        arView.scene.addAnchor(anchor)
+        
         addedOverlayToScene = true
-    }
-}
-
-extension SurgeryController: ARSCNViewDelegate {
-    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-
     }
 }
 
@@ -98,17 +77,20 @@ extension SurgeryController: ARSessionDelegate {
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         DispatchQueue.main.async {
             // add the overlay if necessary, and update its position during alignment to right in front of the camera
-            if self.model.phase == .aligning, let overlayNode = self.overlayNode, let scene = self.scene {
+            if self.model.phase == .aligning, let overlayModel = self.overlayModel, let arView = self.arView {
                 if !self.addedOverlayToScene {
-                    self.addOverlayToScene(overlayNode: overlayNode, scene: scene)
+                    self.addOverlayToScene(overlayModel: overlayModel, arView: arView)
                 }
-                if overlayNode.parent == nil {
+                if overlayModel.parent == nil {
                     self.logger.error("OVERLAY GOT REMOVED DURING ALIGNMENT!!!!")
                 }
-                overlayNode.position = getPositionInFrontOfCamera(cameraTransform: frame.camera.transform, distanceMeters: 0.2)
+                let position = getPositionInFrontOfCamera(cameraTransform: frame.camera.transform, distanceMeters: 0.3)
+                
+                overlayModel.orientation = simd_quaternion(0, 0, 0, 0)
+                overlayModel.position = [position.x, position.y, position.z]
             }
             // just a spot check because this might have happened.  if this doesn't occur for a while, remove it
-            if self.addedOverlayToScene, self.overlayNode?.parent == nil {
+            if self.addedOverlayToScene, self.overlayModel?.parent == nil {
                 self.logger.error("OVERLAY GOT REMOVED FROM THE SCENE")
             }
         }
@@ -119,28 +101,23 @@ extension SurgeryController: ARSessionDelegate {
 
 extension SurgeryController: SurgeryModelDelegate {
     
-    /// Creates the ARSCNView used to show the camera and added scenery
-    func getARView() throws -> ARSCNView {
-        if let sceneView = self.sceneView {
+    /// Creates the ARView used to show the camera and added scenery
+    func getARView() throws -> ARView {
+        if let arView = self.arView {
             // this occurs when ARViewContainer switches, which happens when the model's phase change
-            logger.info("sceneView was previously created.  Returning that.")
-            return sceneView
+            logger.info("arView was previously created.  Returning that.")
+            return arView
         }
-        let sceneView = ARSCNView()
-        sceneView.automaticallyUpdatesLighting = true
-//        sceneView.debugOptions = [
+        let arView = ARView()
+        arView.automaticallyConfigureSession = false
+        arView.environment.sceneUnderstanding.options.insert(.occlusion)
+//        arView.debugOptions = [
 //            .showWorldOrigin,
 //        ]
-        sceneView.delegate = self
-        
-        let scene = SCNScene()
-        sceneView.scene = scene
-        
-        self.scene = scene
-        self.sceneView = sceneView
+        self.arView = arView
         try startArSession()
         
-        return sceneView
+        return arView
     }
     
     func resetWorldOrigin() throws {
@@ -196,7 +173,9 @@ extension SurgeryController: SurgeryModelDelegate {
             throw logger.logAndGetError("No session ID passed from server")
         }
         
-        try loadOverlay(response.model)
+        try await MainActor.run {
+            self.overlayModel = try loadModelEntity(response.model)
+        }
         sessionId = response.sessionID
         await MainActor.run {
             model.phase = .aligning
@@ -205,7 +184,7 @@ extension SurgeryController: SurgeryModelDelegate {
     
     // Saves request data to a file, which is useful when there is no connectivity to the server and you are willing to copy the files manually from the phone to the server
     func saveSnapshot() async throws {
-        guard let frame = await self.sceneView?.session.currentFrame else {
+        guard let frame = await self.arView?.session.currentFrame else {
             throw logger.logAndGetError("Could not get current AR frame")
         }
         let dateFormatter = DateFormatter()
@@ -283,7 +262,7 @@ extension SurgeryController: SurgeryModelDelegate {
 
     /// Makes a request to the server and updates the overlay position accordingly
     func trackOnce() async throws {
-        guard let frame = await self.sceneView?.session.currentFrame else {
+        guard let frame = await self.arView?.session.currentFrame else {
             throw logger.logAndGetError("Could not get current AR frame")
         }
         guard let sessionId = self.sessionId else {
@@ -307,7 +286,7 @@ extension SurgeryController: SurgeryModelDelegate {
         guard let resultTransform = createSim4Float4x4(response.transform)?.transpose else {
             throw logger.logAndGetError("Result transform was invalid")
         }
-        guard let overlayNode = overlayNode else {
+        guard let overlayModel = overlayModel else {
             throw logger.logAndGetError("Overlay was not present")
         }
         
@@ -317,24 +296,24 @@ extension SurgeryController: SurgeryModelDelegate {
         if self.pinGuideNode == nil {
             self.pinGuideNode = createAxis()
         }
-        let axis = self.pinGuideNode!
+  //      let axis = self.pinGuideNode!
 
         await MainActor.run {
             guard !Task.isCancelled else {
                 return
             }
             logger.info("Fixing overlay at position \(position) and orientation \(orientation)")
-            overlayNode.position = position
-            overlayNode.orientation = orientation
-            overlayNode.opacity = 0.8 // show more of it
+//            overlayModel.position = position
+//            overlayModel.orientation = orientation
+//            overlayModel.
 
-            if axis.parent == nil {
-                axis.position = SCNVector3(x: 0.06, y: 0, z: 0)
-                axis.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
-                
-                // WIP: add the axis for the first pin
-                overlayNode.addChildNode(axis)
-            }
+//            if axis.parent == nil {
+//                axis.position = SCNVector3(x: 0.06, y: 0, z: 0)
+//                axis.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
+//                
+//                // WIP: add the axis for the first pin
+//                overlayModel.addChildNode(axis)
+//            }
         }
     }
 
@@ -384,15 +363,16 @@ func makeRotationMatrix(axis: SIMD3<Float>, angle: Float) -> matrix_float4x4 {
     return matrix_float4x4(columns: (column0, column1, column2, column3))
 }
 
-func loadMDLAsset(_ data: Data) throws -> MDLAsset {
+func loadModelEntity(_ data: Data) throws -> ModelEntity {
     // Create a temporary URL to save the file
     let temporaryDirectoryURL = FileManager.default.temporaryDirectory
     let temporaryFileURL = temporaryDirectoryURL.appendingPathComponent("\(UUID().uuidString).usdz") // extension is important.  otherwise the overlay won't show
     try data.write(to: temporaryFileURL, options: [.atomic])
 
+    // todo: can this be made async?  Check out https://gist.github.com/drewolbrich/b058b65c6d3e71f7ac611d9a505902e5
+    let modelEntity = try ModelEntity.loadModel(contentsOf: temporaryFileURL)
     print("Loading model asset of \(data.count) bytes from \(temporaryFileURL.absoluteString)")
-    let asset = MDLAsset(url: temporaryFileURL)
     // delete the file cuz we don't need it
     try FileManager.default.removeItem(at: temporaryFileURL)
-    return asset
+    return modelEntity
 }
