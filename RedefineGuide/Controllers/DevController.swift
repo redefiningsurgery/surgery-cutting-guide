@@ -39,6 +39,8 @@ class DevController: NSObject {
         }
         let configuration = ARWorldTrackingConfiguration()
         configuration.frameSemantics.insert(.sceneDepth)
+//        configuration.frameSemantics.insert(.personSegmentationWithDepth)
+        configuration.sceneReconstruction = .mesh
         // https://developer.apple.com/documentation/arkit/arkit_in_ios/content_anchors/scanning_and_detecting_3d_objects
         configuration.planeDetection = .horizontal
         configuration.isAutoFocusEnabled = true
@@ -70,13 +72,19 @@ class DevController: NSObject {
         // temporary hack to get the model sized properly
         //modelNode.scaleToWidth(centimeters: 20)
         // make it translucent
-        modelNode.opacity = 1
+        modelNode.opacity = 0.2
         // rotate the model up and tilt it slightly.  remember, the femur comes from the upper leg, so the base points up
-        modelNode.rotate(x: 0, y: 0, z: 0)
+//        modelNode.rotate(x: 0, y: 0, z: 0)
 
         let transform = frame.camera.transform
         overlayNode = modelNode // Store the reference
-        modelNode.position = getPositionInFrontOfCamera(cameraTransform: transform, distanceMeters: 0.2)
+        
+//        Fixing overlay at position SCNVector3(x: -0.020270478, y: -0.0797465, z: -0.13184097) and orientation SCNVector4(x: 0.998327, y: -0.0042214324, z: 0.056730166, w: 0.0103404)
+
+        modelNode.position = SCNVector3(x: -0.020270478, y: -0.0797465, z: -0.13184097)
+        modelNode.orientation = SCNVector4(x: 0.998327, y: -0.0042214324, z: 0.056730166, w: 0.0103404)
+        
+        //getPositionInFrontOfCamera(cameraTransform: transform, distanceMeters: 0.2)
 
         self.logger.info("Adding overlay to the scene")
         scene.rootNode.addChildNode(modelNode)
