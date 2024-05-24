@@ -30,6 +30,39 @@ extension SCNNode {
         let scaleFactor = targetWidth / currentWidth
         self.scale = SCNVector3(scaleFactor, scaleFactor, scaleFactor)
     }
+    
+    /// Gets the bounding box from the scene's view for this node
+    func getBoundingBoxInScreenCoords(in sceneView: ARSCNView) -> CGRect {
+        let (minCorner, maxCorner) = self.boundingBox
+
+        // Create an array of vertices by combining min and max coordinates
+        let vertices = [
+            SCNVector3(minCorner.x, minCorner.y, minCorner.z),
+            SCNVector3(maxCorner.x, minCorner.y, minCorner.z),
+            SCNVector3(minCorner.x, maxCorner.y, minCorner.z),
+            SCNVector3(maxCorner.x, maxCorner.y, minCorner.z),
+            SCNVector3(minCorner.x, minCorner.y, maxCorner.z),
+            SCNVector3(maxCorner.x, minCorner.y, maxCorner.z),
+            SCNVector3(minCorner.x, maxCorner.y, maxCorner.z),
+            SCNVector3(maxCorner.x, maxCorner.y, maxCorner.z)
+        ].map { self.convertPosition($0, to: nil) } // Convert each vertex to world coordinates
+
+        // Project all world coordinates to screen coordinates
+        let screenPoints = vertices.map { sceneView.projectPoint($0) }
+
+        // Find the min and max coordinates from projected points
+        let minX = screenPoints.map { CGFloat($0.x) }.min() ?? 0
+        let maxX = screenPoints.map { CGFloat($0.x) }.max() ?? 0
+        let minY = screenPoints.map { CGFloat($0.y) }.min() ?? 0
+        let maxY = screenPoints.map { CGFloat($0.y) }.max() ?? 0
+
+        // Calculate width and height from min and max coordinates
+        let width = maxX - minX
+        let height = maxY - minY
+
+        // Create and return the CGRect
+        return CGRect(x: minX, y: minY, width: width, height: height)
+    }
 }
 
 func createAxis() -> SCNNode {

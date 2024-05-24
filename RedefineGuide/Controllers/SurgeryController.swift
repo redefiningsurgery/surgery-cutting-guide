@@ -79,12 +79,6 @@ class SurgeryController: NSObject {
             self.addedOverlayToScene = false
         }
     }
-    
-    func addOverlayToScene(overlayNode: SCNNode, scene: SCNScene) {
-        self.logger.info("Adding overlay to the scene")
-        scene.rootNode.addChildNode(overlayNode)
-        addedOverlayToScene = true
-    }
 }
 
 extension SurgeryController: ARSCNViewDelegate {
@@ -98,14 +92,20 @@ extension SurgeryController: ARSessionDelegate {
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         DispatchQueue.main.async {
             // add the overlay if necessary, and update its position during alignment to right in front of the camera
-            if self.model.phase == .aligning, let overlayNode = self.overlayNode, let scene = self.scene {
+            if self.model.phase == .aligning, let overlayNode = self.overlayNode, let sceneView = self.sceneView {
                 if !self.addedOverlayToScene {
-                    self.addOverlayToScene(overlayNode: overlayNode, scene: scene)
+                    self.logger.info("Adding overlay to the scene")
+                    sceneView.scene.rootNode.addChildNode(overlayNode)
+                    self.addedOverlayToScene = true
                 }
                 if overlayNode.parent == nil {
                     self.logger.error("OVERLAY GOT REMOVED DURING ALIGNMENT!!!!")
                 }
                 overlayNode.position = getPositionInFrontOfCamera(cameraTransform: frame.camera.transform, distanceMeters: 0.2)
+                self.model.overlayBounds = overlayNode.getBoundingBoxInScreenCoords(in: sceneView)
+            } else if self.model.overlayBounds != nil {
+                // ensures it is removed from the main view
+                self.model.overlayBounds = nil
             }
             // just a spot check because this might have happened.  if this doesn't occur for a while, remove it
             if self.addedOverlayToScene, self.overlayNode?.parent == nil {
