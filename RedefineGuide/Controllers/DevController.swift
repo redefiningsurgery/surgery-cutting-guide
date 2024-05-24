@@ -19,6 +19,7 @@ class DevController: NSObject {
     /// The number of times the tracking has been updated.  Each time is a trip to the server
     private var trackingCount: Int = 0
     private var addedOverlayToScene: Bool = false
+    private var axisMaterial: SCNMaterial? = nil
 
     override init() {
         model = SurgeryModel()
@@ -69,18 +70,9 @@ class DevController: NSObject {
         let depth = max.z - min.z
         logger.info("CAD native dimensions: width=\(width), height=\(height), depth=\(depth)")
 
-        // temporary hack to get the model sized properly
-        //modelNode.scaleToWidth(centimeters: 20)
-        // make it translucent
-        modelNode.opacity = 0.2
-        // rotate the model up and tilt it slightly.  remember, the femur comes from the upper leg, so the base points up
-//        modelNode.rotate(x: 0, y: 0, z: 0)
-
-        let transform = frame.camera.transform
+        modelNode.opacity = 0.8
         overlayNode = modelNode // Store the reference
         
-//        Fixing overlay at position SCNVector3(x: -0.020270478, y: -0.0797465, z: -0.13184097) and orientation SCNVector4(x: 0.998327, y: -0.0042214324, z: 0.056730166, w: 0.0103404)
-
         modelNode.position = SCNVector3(x: -0.020270478, y: -0.0797465, z: -0.13184097)
         modelNode.orientation = SCNVector4(x: 0.998327, y: -0.0042214324, z: 0.056730166, w: 0.0103404)
         
@@ -90,6 +82,11 @@ class DevController: NSObject {
         scene.rootNode.addChildNode(modelNode)
 
         let axis1 = createAxis()
+        guard let material = axis1.geometry?.firstMaterial else {
+            throw logger.logAndGetError("Could not get axis material")
+        }
+        self.axisMaterial = material
+        
         axis1.position = SCNVector3(x: 0.0, y: 0, z: 0)
         axis1.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
         modelNode.addChildNode(axis1)
@@ -121,6 +118,10 @@ extension DevController: ARSessionDelegate {
                 if !self.addedOverlayToScene {
                     try? self.loadOverlay(frame: frame, scene: scene)
                 }
+            }
+            if let axisMaterial = self.axisMaterial, let depthData = frame.sceneDepth?.depthMap {
+//                let depthTexture = texture(from: depthData, device: MTLCreateSystemDefaultDevice()!)
+//                axisMaterial.setValue(SKTexture(cgImage: depthTexture), forKey: "depthTexture")
             }
         }
         // if this is the first frame in the session, adjust the world origin so the center is slightly in front of the phone

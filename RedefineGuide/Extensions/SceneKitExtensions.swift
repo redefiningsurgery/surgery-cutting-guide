@@ -8,6 +8,7 @@
 import Foundation
 import SceneKit
 import ARKit
+import QuartzCore
 
 extension SCNNode {
     
@@ -34,20 +35,31 @@ extension SCNNode {
 
 func createAxisMaterial() -> SCNMaterial {
     let material = SCNMaterial()
-    
     material.diffuse.contents = UIColor.red  // Color can be changed based on the axis color requirement
     material.specular.contents = UIColor.white  // Highlights
-    material.transparency = 0.5 // Semi-transparent
+    // material.transparency = 0.5 // Semi-transparent
     material.fillMode = .lines // outline
-//    material.writesToDepthBuffer = true
-        //    material.metalness.contents = 1.0  // Metal-like properties
+    material.shaderModifiers = [
+        SCNShaderModifierEntryPoint.surface: """
+        uniform float Scale = 12.0;
+        uniform float Width = 0.5;
+        uniform float Blend = 0.0;
+        vec2 position = fract(_surface.diffuseTexcoord * Scale);
+        float f1 = clamp(position.y / Blend, 0.0, 1.0);
+        float f2 = clamp((position.y - Width) / Blend, 0.0, 1.0);
+        f1 = f1 * (1.0 - f2);
+        f1 = f1 * f1 * 2.0 * (3. * 2. * f1);
+        _surface.diffuse = mix(vec4(1.0), vec4(0.0), f1);
+        """
+    ]
+    //    material.writesToDepthBuffer = true
+    //    material.metalness.contents = 1.0  // Metal-like properties
     return material
-
 }
 
 func createAxis() -> SCNNode {
     // Create a cylinder that is thin and long
-    let cylinder = SCNCylinder(radius: 0.002, height: 1.0)  // Adjust radius for thinness and height for length
+    let cylinder = SCNCylinder(radius: 0.008, height: 1.0)  // Adjust radius for thinness and height for length
 
     // Create a material and assign a color
     cylinder.materials = [createAxisMaterial()]
