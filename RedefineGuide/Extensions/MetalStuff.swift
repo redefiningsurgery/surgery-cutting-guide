@@ -64,6 +64,20 @@ class MetalStuff {
         return texture
     }
     
+    func createTexture(fromPixelBuffer pixelBuffer: CVPixelBuffer, pixelFormat: MTLPixelFormat, planeIndex: Int) -> CVMetalTexture? {
+        let width = CVPixelBufferGetWidthOfPlane(pixelBuffer, planeIndex)
+        let height = CVPixelBufferGetHeightOfPlane(pixelBuffer, planeIndex)
+        
+        var texture: CVMetalTexture? = nil
+        let status = CVMetalTextureCacheCreateTextureFromImage(nil, textureCache!, pixelBuffer, nil, pixelFormat,
+                                                               width, height, planeIndex, &texture)
+        
+        if status != kCVReturnSuccess {
+            texture = nil
+        }
+        
+        return texture
+    }
 }
 
 
@@ -73,6 +87,7 @@ func createAxisMaterial() -> SCNMaterial {
     material.shaderModifiers = [
         SCNShaderModifierEntryPoint.fragment: """
         #pragma arguments
+        // depth2d<float, access::sample> arDepthTexture
         texture2d<float, access::sample> depthTexture;
         sampler depthSampler;  // You need a sampler to read from the texture
 
@@ -80,20 +95,17 @@ func createAxisMaterial() -> SCNMaterial {
         float depthValue = depthTexture.sample(depthSampler, float2(0.0, 0.0)).r; // Sample the depth texture at (0,0)
         _output.color.a = depthValue;
         // _output.color.a = clamp(depthValue, 0.0, 1.0);
-        //        if (depthValue < 0.1) {
-        //            _output.color.a = 0.0;  // Make pixel fully transparent if depth is less than 0.1
-        //        } else {
-        //            _output.color.a = 1;  // Otherwise, use a semi-transparent value
-        //        }
         """,
-
     ]
     return material
 }
 
 func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ axisMaterial: SCNMaterial) {
     let depthMap = copyAndModifyPixelBuffer(originalBuffer: depthData, value: 0.0)
-    let depthTexture = MetalStuff.shared.createTexture(depthMap)
+    var texturePixelFormat: MTLPixelFormat!
+    setMTLPixelFormat(&texturePixelFormat, basedOn: depthMap)
+    let depthTexture = MetalStuff.shared.createTexture(fromPixelBuffer: depthMap, pixelFormat: texturePixelFormat, planeIndex: 0)
+//    let depthTexture = MetalStuff.shared.createTexture(depthMap)
     axisMaterial.setValue(depthTexture, forKey: "depthTexture")
     let sampler = MTLSamplerDescriptor()
     sampler.minFilter = .nearest
@@ -102,6 +114,7 @@ func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ axisMaterial: SCNMaterial) 
     let samplerState = MetalStuff.shared.device!.makeSamplerState(descriptor: sampler)
     axisMaterial.setValue(samplerState, forKey: "depthSampler")
 }
+
 
 func copyAndModifyPixelBuffer(originalBuffer: CVPixelBuffer, value: Float) -> CVPixelBuffer {
     let width = CVPixelBufferGetWidth(originalBuffer)
@@ -140,6 +153,16 @@ func copyAndModifyPixelBuffer(originalBuffer: CVPixelBuffer, value: Float) -> CV
     return buffer
 }
 
+// Assigns an appropriate MTL pixel format given the argument pixel-buffer's format.
+fileprivate func setMTLPixelFormat(_ texturePixelFormat: inout MTLPixelFormat?, basedOn pixelBuffer: CVPixelBuffer!) {
+    if CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_DepthFloat32 {
+        texturePixelFormat = .r32Float
+    } else if CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_OneComponent8 {
+        texturePixelFormat = .r8Uint
+    } else {
+        fatalError("Unsupported ARDepthData pixel-buffer format.")
+    }
+}
 
 // depth2d<float, access::sample> sceneDepthTexture [[ texture(3) ]],
 
