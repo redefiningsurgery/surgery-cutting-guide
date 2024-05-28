@@ -78,7 +78,8 @@ func createAxisMaterial() -> SCNMaterial {
 
         #pragma body
         float depthValue = depthTexture.sample(depthSampler, float2(0.0, 0.0)).r; // Sample the depth texture at (0,0)
-        _output.color.a = clamp(depthValue, 0.0, 1.0);
+        _output.color.a = depthValue;
+        // _output.color.a = clamp(depthValue, 0.0, 1.0);
         //        if (depthValue < 0.1) {
         //            _output.color.a = 0.0;  // Make pixel fully transparent if depth is less than 0.1
         //        } else {
@@ -91,7 +92,8 @@ func createAxisMaterial() -> SCNMaterial {
 }
 
 func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ axisMaterial: SCNMaterial) {
-    let depthTexture = MetalStuff.shared.createTexture(depthData)
+    let depthMap = copyAndModifyPixelBuffer(originalBuffer: depthData, value: 0.0)
+    let depthTexture = MetalStuff.shared.createTexture(depthMap)
     axisMaterial.setValue(depthTexture, forKey: "depthTexture")
     let sampler = MTLSamplerDescriptor()
     sampler.minFilter = .nearest
@@ -101,6 +103,42 @@ func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ axisMaterial: SCNMaterial) 
     axisMaterial.setValue(samplerState, forKey: "depthSampler")
 }
 
+func copyAndModifyPixelBuffer(originalBuffer: CVPixelBuffer, value: Float) -> CVPixelBuffer {
+    let width = CVPixelBufferGetWidth(originalBuffer)
+    let height = CVPixelBufferGetHeight(originalBuffer)
+    let pixelFormat = CVPixelBufferGetPixelFormatType(originalBuffer)
+
+    var newPixelBuffer: CVPixelBuffer?
+    let attributes = [
+        kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue!,
+        kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue!
+    ] as CFDictionary
+    CVPixelBufferCreate(kCFAllocatorDefault, width, height, pixelFormat, attributes, &newPixelBuffer)
+
+    guard let buffer = newPixelBuffer else { fatalError("Could not create new pixel buffer") }
+
+    CVPixelBufferLockBaseAddress(buffer, CVPixelBufferLockFlags(rawValue: 0))
+    CVPixelBufferLockBaseAddress(originalBuffer, CVPixelBufferLockFlags(rawValue: 0))
+
+    let bufferAddress = CVPixelBufferGetBaseAddress(buffer)
+    let originalAddress = CVPixelBufferGetBaseAddress(originalBuffer)
+
+    memcpy(bufferAddress, originalAddress, CVPixelBufferGetDataSize(originalBuffer))
+
+    let rowBytes = CVPixelBufferGetBytesPerRow(buffer)
+    let floatBuffer = bufferAddress!.bindMemory(to: Float.self, capacity: width * height)
+
+    for row in 0..<height {
+        for col in 0..<width {
+            floatBuffer[row * (rowBytes / MemoryLayout<Float>.size) + col] = value
+        }
+    }
+
+    CVPixelBufferUnlockBaseAddress(originalBuffer, CVPixelBufferLockFlags(rawValue: 0))
+    CVPixelBufferUnlockBaseAddress(buffer, CVPixelBufferLockFlags(rawValue: 0))
+
+    return buffer
+}
 
 
 // depth2d<float, access::sample> sceneDepthTexture [[ texture(3) ]],
