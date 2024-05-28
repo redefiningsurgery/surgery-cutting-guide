@@ -89,21 +89,33 @@ func createAxisMaterial() -> SCNMaterial {
     material.diffuse.contents = UIColor.red  // Color can be changed based on the axis color requirement
     // https://github.com/search?q=%22%23pragma+arguments%22+AND+%22shaderModifiers%22+AND+%22fragment%22+AND+%22sample%22&type=code
     // https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf
+    // https://developer.apple.com/documentation/scenekit/scnshadermodifierentrypoint/1523791-surface
     // https://github.com/theos/sdks/blob/ca52092676249546f08657d4fc0c8beb26a80510/iPhoneOS12.4.sdk/System/Library/Frameworks/SceneKit.framework/Headers/SCNShadable.h#L69
     material.shaderModifiers = [
         .fragment: """
         #pragma arguments
         texture2d<float, access::sample> depthTexture;
+        float viewWidth;
+        float viewHeight;
 
         #pragma body
         constexpr sampler depthSampler(coord::pixel);
 
-        float depthValue = depthTexture.sample(depthSampler, _surface.diffuseTexcoord).r; // Sample the depth texture using actual texture coordinates
+        // diffuseTexcoord values are 0-1
+        float2 screenPosition = _surface.diffuseTexcoord * float2(viewWidth, viewHeight);  // Assuming viewWidth and viewHeight are passed as uniforms
+
+        float depthValue = depthTexture.sample(depthSampler, screenPosition).r; // Sample the depth texture using actual texture coordinates
         // float depthValue = depthTexture.sample(depthSampler, float2(0.0, 0.0)).r; // Sample the depth texture at (0,0)
 
         // float4 has xyzw
         // float depthFromCamera = -_surface.position.z / (_surface.position.w);  // Normalize the depth
 
+        //        float zNear = 1.0;
+        //        float zFar = 100.0; // default value from cameras
+        //        float z = _surface.position.z;  // View space depth (should be negative)
+        //        float zNDC = (2.0 * z - zNear - zFar) / (zFar - zNear);  // Convert to  normalized device coordinate (NDC)
+        //        float depthInMeters = (2.0 * zNear * zFar) / (zFar + zNear - zNDC * (zFar - zNear));  // Convert to meters
+        
         float thresholdDepth = 0.5; // Example threshold, adjust as needed
         // if (depthValue <= depthValue) {
         if (depthValue <= thresholdDepth) {
@@ -120,11 +132,14 @@ func createAxisMaterial() -> SCNMaterial {
 
 func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ cameraSize: CGSize, _ axisMaterial: SCNMaterial) {
 //    let depthMap = copyAndModifyPixelBuffer(originalBuffer: depthData, value: 0.0)
-    let pixels = try! getDepthMapPixels(depthData)
-    print("Top left: \(pixels[0])")
+//    let pixels = try! getDepthMapPixels(depthData)
+//    print("Top left: \(pixels[0])")
 
     let depthMap = pixelBufferToImage(depthData, targetSize: cameraSize)!
     axisMaterial.setValue(SCNMaterialProperty(contents: depthMap), forKey: "depthTexture")
+
+    axisMaterial.setValue(CGFloat(cameraSize.width), forKey: "viewWidth")
+    axisMaterial.setValue(CGFloat(cameraSize.height), forKey: "viewHeight")
 
     //    var texturePixelFormat: MTLPixelFormat!
 //    setMTLPixelFormat(&texturePixelFormat, basedOn: depthMap)

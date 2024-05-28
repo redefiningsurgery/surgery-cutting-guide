@@ -123,6 +123,14 @@ extension DevController: ARSessionDelegate {
                 }
             }
             if let axisMaterial = self.axisMaterial, let depthData = frame.smoothedSceneDepth?.depthMap {
+                // these were always nil
+//                if let near = self.scene?.rootNode.camera?.zNear {
+//                    print("Near: \(near)")
+//                }
+//                if let far = self.scene?.rootNode.camera?.zFar {
+//                    print("Far: \(far)")
+//                }
+                
 //            if let axisMaterial = self.axisMaterial, let depthData = frame.sceneDepth?.depthMap {
                 setAxisMetalStuff(depthData, frame.camera.imageResolution, axisMaterial)
             }
