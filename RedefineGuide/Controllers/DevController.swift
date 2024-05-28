@@ -41,6 +41,7 @@ class DevController: NSObject {
         }
         let configuration = ARWorldTrackingConfiguration()
         configuration.frameSemantics.insert(.sceneDepth)
+        configuration.frameSemantics.insert(.smoothedSceneDepth)
 //        configuration.frameSemantics.insert(.personSegmentationWithDepth)
         configuration.sceneReconstruction = .mesh
         // https://developer.apple.com/documentation/arkit/arkit_in_ios/content_anchors/scanning_and_detecting_3d_objects
@@ -121,8 +122,9 @@ extension DevController: ARSessionDelegate {
                     try? self.loadOverlay(frame: frame, scene: scene)
                 }
             }
-            if let axisMaterial = self.axisMaterial, let depthData = frame.sceneDepth?.depthMap {
-                setAxisMetalStuff(depthData, axisMaterial)
+            if let axisMaterial = self.axisMaterial, let depthData = frame.smoothedSceneDepth?.depthMap {
+//            if let axisMaterial = self.axisMaterial, let depthData = frame.sceneDepth?.depthMap {
+                setAxisMetalStuff(depthData, frame.camera.imageResolution, axisMaterial)
             }
         }
         // if this is the first frame in the session, adjust the world origin so the center is slightly in front of the phone

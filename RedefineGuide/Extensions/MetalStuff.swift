@@ -88,7 +88,7 @@ func createAxisMaterial() -> SCNMaterial {
 //    material.transparency = 0.5
     material.diffuse.contents = UIColor.red  // Color can be changed based on the axis color requirement
     // https://github.com/search?q=%22%23pragma+arguments%22+AND+%22shaderModifiers%22+AND+%22fragment%22+AND+%22sample%22&type=code
-    
+    // https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf
     // https://github.com/theos/sdks/blob/ca52092676249546f08657d4fc0c8beb26a80510/iPhoneOS12.4.sdk/System/Library/Frameworks/SceneKit.framework/Headers/SCNShadable.h#L69
     material.shaderModifiers = [
         .fragment: """
@@ -98,27 +98,41 @@ func createAxisMaterial() -> SCNMaterial {
         #pragma body
         constexpr sampler depthSampler(coord::pixel);
 
-        float depthValue = depthTexture.sample(depthSampler, float2(0.0, 0.0)).r; // Sample the depth texture at (0,0)
-        if (depthValue < 0.05) {
-        
-            _output.color.a = 0;
+        float depthValue = depthTexture.sample(depthSampler, _surface.diffuseTexcoord).r; // Sample the depth texture using actual texture coordinates
+        // float depthValue = depthTexture.sample(depthSampler, float2(0.0, 0.0)).r; // Sample the depth texture at (0,0)
+
+        // float4 has xyzw
+        // float depthFromCamera = -_surface.position.z / (_surface.position.w);  // Normalize the depth
+
+        float thresholdDepth = 0.5; // Example threshold, adjust as needed
+        // if (depthValue <= depthValue) {
+        if (depthValue <= thresholdDepth) {
+            _output.color.a = 0.0; // Make pixel fully transparent if an object is detected at or closer than the threshold
+        } else {
+            _output.color.a = 1.0; // Fully opaque if no object is detected within the threshold
         }
+        // _output.color = float4(0, 0, 0, 1.0);
         // _output.color.a = clamp(depthValue, 0.0, 1.0);
         """,
     ]
     return material
 }
 
-func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ axisMaterial: SCNMaterial) {
-    let depthMap = copyAndModifyPixelBuffer(originalBuffer: depthData, value: 0.0)
-//    var texturePixelFormat: MTLPixelFormat!
+func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ cameraSize: CGSize, _ axisMaterial: SCNMaterial) {
+//    let depthMap = copyAndModifyPixelBuffer(originalBuffer: depthData, value: 0.0)
+    let pixels = try! getDepthMapPixels(depthData)
+    print("Top left: \(pixels[0])")
+
+    let depthMap = pixelBufferToImage(depthData, targetSize: cameraSize)!
+    axisMaterial.setValue(SCNMaterialProperty(contents: depthMap), forKey: "depthTexture")
+
+    //    var texturePixelFormat: MTLPixelFormat!
 //    setMTLPixelFormat(&texturePixelFormat, basedOn: depthMap)
 //    let depthTexture = MetalStuff.shared.createTexture(fromPixelBuffer: depthMap, pixelFormat: texturePixelFormat, planeIndex: 0)
 //    let depthTexture = MetalStuff.shared.createTexture(depthMap)
     //axisMaterial.setValue(depthTexture, forKey: "depthTexture")
 //    let texture = createSinglePixelTexture(device: MetalStuff.shared.device!, value: 0.0)
     //axisMaterial.setValue(texture, forKey: "depthTexture")
-    axisMaterial.setValue(SCNMaterialProperty(contents: pixelBufferToImage(depthMap)), forKey: "depthTexture")
 
 //    let sampler = MTLSamplerDescriptor()
 //    sampler.minFilter = .nearest
@@ -128,13 +142,62 @@ func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ axisMaterial: SCNMaterial) 
 //    axisMaterial.setValue(samplerState, forKey: "depthSampler")
 }
 
-func pixelBufferToImage(_ buffer: CVPixelBuffer) -> CGImage {
+func getDepthMapPixels(_ pixelBuffer: CVPixelBuffer) throws -> [Float] {
+    guard CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_DepthFloat32 else {
+        throw getError("Depth frame has incorrect pixel format type.")
+    }
+    
+    // Lock the pixel buffer to access its data
+    CVPixelBufferLockBaseAddress(pixelBuffer, CVPixelBufferLockFlags.readOnly)
+    defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags.readOnly) }
+    
+    // Ensure we have access to the base address of the pixel buffer
+    guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else {
+        throw getError("Could not get base address of CVPixelBuffer")
+    }
+    
+    // Calculate the number of bytes per row
+    let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+    
+    let width = CVPixelBufferGetWidth(pixelBuffer)
+    let height = CVPixelBufferGetHeight(pixelBuffer)
+
+    // Prepare an array to hold all depth values
+    // todo: test with Float as well
+    var pixelValues = [Float](repeating: 0, count: width * height)
+    
+    // Iterate over the depth map to populate the depthValues array
+    for row in 0..<height {
+        let rowData = baseAddress.advanced(by: row * bytesPerRow).assumingMemoryBound(to: Float.self)
+        for col in 0..<width {
+            let value: Float = rowData[col]
+            pixelValues[row * width + col] = value
+        }
+    }
+    
+    return pixelValues
+}
+
+//func pixelBufferToImage(_ buffer: CVPixelBuffer) -> CGImage {
+//    let ciContext = CIContext()
+//    let ciImage = CIImage(cvPixelBuffer: buffer)
+//    return !ciContext.createCGImage(ciImage, from: ciImage.extent)
+//}
+
+func pixelBufferToImage(_ buffer: CVPixelBuffer, targetSize: CGSize) -> CGImage? {
     let ciContext = CIContext()
     let ciImage = CIImage(cvPixelBuffer: buffer)
-    if let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) {
-        return cgImage
-    }
-    fatalError()
+
+    // Create a CGAffineTransform to resize the image
+    let scaleX = targetSize.width / ciImage.extent.width
+    let scaleY = targetSize.height / ciImage.extent.height
+    let scaleTransform = CGAffineTransform(scaleX: scaleX, y: scaleY)
+
+    // Apply the transform
+    let scaledImage = ciImage.transformed(by: scaleTransform)
+
+    // Create a CGImage from the scaled CIImage
+    return ciContext.createCGImage(scaledImage, from: scaledImage.extent)
 }
 
 func copyAndModifyPixelBuffer(originalBuffer: CVPixelBuffer, value: Float) -> CVPixelBuffer {
