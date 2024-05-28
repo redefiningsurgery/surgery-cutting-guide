@@ -99,7 +99,10 @@ func createAxisMaterial() -> SCNMaterial {
         constexpr sampler depthSampler(coord::pixel);
 
         float depthValue = depthTexture.sample(depthSampler, float2(0.0, 0.0)).r; // Sample the depth texture at (0,0)
-        _output.color.a = depthValue;
+        if (depthValue < 0.05) {
+        
+            _output.color.a = 0;
+        }
         // _output.color.a = clamp(depthValue, 0.0, 1.0);
         """,
     ]
@@ -125,11 +128,11 @@ func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ axisMaterial: SCNMaterial) 
 //    axisMaterial.setValue(samplerState, forKey: "depthSampler")
 }
 
-func pixelBufferToImage(_ buffer: CVPixelBuffer) -> UIImage {
+func pixelBufferToImage(_ buffer: CVPixelBuffer) -> CGImage {
     let ciContext = CIContext()
     let ciImage = CIImage(cvPixelBuffer: buffer)
     if let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) {
-        return UIImage(cgImage: cgImage)
+        return cgImage
     }
     fatalError()
 }
