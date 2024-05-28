@@ -83,15 +83,21 @@ class MetalStuff {
 
 func createAxisMaterial() -> SCNMaterial {
     let material = SCNMaterial()
+//    material.isDoubleSided = true
+//    material.blendMode = .alpha
+//    material.transparency = 0.5
     material.diffuse.contents = UIColor.red  // Color can be changed based on the axis color requirement
+    // https://github.com/search?q=%22%23pragma+arguments%22+AND+%22shaderModifiers%22+AND+%22fragment%22+AND+%22sample%22&type=code
+    
+    // https://github.com/theos/sdks/blob/ca52092676249546f08657d4fc0c8beb26a80510/iPhoneOS12.4.sdk/System/Library/Frameworks/SceneKit.framework/Headers/SCNShadable.h#L69
     material.shaderModifiers = [
-        SCNShaderModifierEntryPoint.fragment: """
+        .fragment: """
         #pragma arguments
-        // depth2d<float, access::sample> arDepthTexture
         texture2d<float, access::sample> depthTexture;
-        sampler depthSampler;  // You need a sampler to read from the texture
 
         #pragma body
+        constexpr sampler depthSampler(coord::pixel);
+
         float depthValue = depthTexture.sample(depthSampler, float2(0.0, 0.0)).r; // Sample the depth texture at (0,0)
         _output.color.a = depthValue;
         // _output.color.a = clamp(depthValue, 0.0, 1.0);
@@ -102,19 +108,31 @@ func createAxisMaterial() -> SCNMaterial {
 
 func setAxisMetalStuff(_ depthData: CVPixelBuffer, _ axisMaterial: SCNMaterial) {
     let depthMap = copyAndModifyPixelBuffer(originalBuffer: depthData, value: 0.0)
-    var texturePixelFormat: MTLPixelFormat!
-    setMTLPixelFormat(&texturePixelFormat, basedOn: depthMap)
-    let depthTexture = MetalStuff.shared.createTexture(fromPixelBuffer: depthMap, pixelFormat: texturePixelFormat, planeIndex: 0)
+//    var texturePixelFormat: MTLPixelFormat!
+//    setMTLPixelFormat(&texturePixelFormat, basedOn: depthMap)
+//    let depthTexture = MetalStuff.shared.createTexture(fromPixelBuffer: depthMap, pixelFormat: texturePixelFormat, planeIndex: 0)
 //    let depthTexture = MetalStuff.shared.createTexture(depthMap)
-    axisMaterial.setValue(depthTexture, forKey: "depthTexture")
-    let sampler = MTLSamplerDescriptor()
-    sampler.minFilter = .nearest
-    sampler.magFilter = .nearest
-    
-    let samplerState = MetalStuff.shared.device!.makeSamplerState(descriptor: sampler)
-    axisMaterial.setValue(samplerState, forKey: "depthSampler")
+    //axisMaterial.setValue(depthTexture, forKey: "depthTexture")
+//    let texture = createSinglePixelTexture(device: MetalStuff.shared.device!, value: 0.0)
+    //axisMaterial.setValue(texture, forKey: "depthTexture")
+    axisMaterial.setValue(SCNMaterialProperty(contents: pixelBufferToImage(depthMap)), forKey: "depthTexture")
+
+//    let sampler = MTLSamplerDescriptor()
+//    sampler.minFilter = .nearest
+//    sampler.magFilter = .nearest
+//    
+//    let samplerState = MetalStuff.shared.device!.makeSamplerState(descriptor: sampler)
+//    axisMaterial.setValue(samplerState, forKey: "depthSampler")
 }
 
+func pixelBufferToImage(_ buffer: CVPixelBuffer) -> UIImage {
+    let ciContext = CIContext()
+    let ciImage = CIImage(cvPixelBuffer: buffer)
+    if let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) {
+        return UIImage(cgImage: cgImage)
+    }
+    fatalError()
+}
 
 func copyAndModifyPixelBuffer(originalBuffer: CVPixelBuffer, value: Float) -> CVPixelBuffer {
     let width = CVPixelBufferGetWidth(originalBuffer)
@@ -163,6 +181,27 @@ fileprivate func setMTLPixelFormat(_ texturePixelFormat: inout MTLPixelFormat?, 
         fatalError("Unsupported ARDepthData pixel-buffer format.")
     }
 }
+
+func createSinglePixelTexture(device: MTLDevice, value: Float) -> MTLTexture? {
+    let textureDescriptor = MTLTextureDescriptor.texture2DDescriptor(
+        pixelFormat: .r32Float,  // Single-channel 32-bit float
+        width: 1,                // Width of the texture
+        height: 1,               // Height of the texture
+        mipmapped: false         // No mipmaps
+    )
+    textureDescriptor.usage = [.shaderRead, .shaderWrite]  // Usage settings
+
+    guard let texture = device.makeTexture(descriptor: textureDescriptor) else {
+        return nil
+    }
+
+    var pixelValue = value  // Value to set, could be 0.0 or 1.0
+    let region = MTLRegionMake2D(0, 0, 1, 1)  // Define the region of the texture to modify
+
+    texture.replace(region: region, mipmapLevel: 0, withBytes: &pixelValue, bytesPerRow: 4)
+    return texture
+}
+
 
 // depth2d<float, access::sample> sceneDepthTexture [[ texture(3) ]],
 
