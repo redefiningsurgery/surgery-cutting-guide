@@ -27,8 +27,9 @@ class DevController: NSObject {
         super.init()
 
         model.delegate = self
+        
     }
-    
+        
     func pause() {
         self.sceneView?.session.pause()
         logger.info("Stopped AR session")
@@ -70,7 +71,7 @@ class DevController: NSObject {
         let depth = max.z - min.z
         logger.info("CAD native dimensions: width=\(width), height=\(height), depth=\(depth)")
 
-        modelNode.opacity = 0.8
+//        modelNode.opacity = 0.8
         overlayNode = modelNode // Store the reference
         
         modelNode.position = SCNVector3(x: -0.020270478, y: -0.0797465, z: -0.13184097)
@@ -111,6 +112,7 @@ extension DevController: ARSCNViewDelegate {
 }
 
 extension DevController: ARSessionDelegate {
+    
     /// Called every time the ARFrame is updated
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         DispatchQueue.main.async {
@@ -120,8 +122,7 @@ extension DevController: ARSessionDelegate {
                 }
             }
             if let axisMaterial = self.axisMaterial, let depthData = frame.sceneDepth?.depthMap {
-//                let depthTexture = texture(from: depthData, device: MTLCreateSystemDefaultDevice()!)
-//                axisMaterial.setValue(SKTexture(cgImage: depthTexture), forKey: "depthTexture")
+                setAxisMetalStuff(depthData, axisMaterial)
             }
         }
         // if this is the first frame in the session, adjust the world origin so the center is slightly in front of the phone
@@ -165,35 +166,11 @@ extension DevController: SurgeryModelDelegate {
     
     // Saves request data to a file, which is useful when there is no connectivity to the server and you are willing to copy the files manually from the phone to the server
     func saveSnapshot() async throws {
-        guard let frame = await self.sceneView?.session.currentFrame else {
-            throw logger.logAndGetError("Could not get current AR frame")
-        }
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-        let sessionId = dateFormatter.string(from: Date())
-        // use a fake session ID
-        let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
-        try saveTrackingRequest(request)
+
     }
     
     func stopSession() async throws {
-        if let trackingTask = trackingTask, !trackingTask.isCancelled {
-            trackingTask.cancel()
-            await trackingTask.value
-        } else {
-            logger.warning("Session did not have a tracking task")
-        }
-        removeOverlayModel()
-        let sessionId = sessionId
-        self.sessionId = nil
-        trackingCount = 0
-        // todo: stop the AR session and set adjustedWorldOrigin to false
 
-        await MainActor.run {
-            model.phase = .done
-        }
-
-        // todo: notify the server so it can close the session
     }
     
     /// Begins the ongoing process of tracking the position of the bone.  This makes a single pose request to the server, so this is a long-running operation

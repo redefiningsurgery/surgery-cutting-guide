@@ -33,30 +33,6 @@ extension SCNNode {
     }
 }
 
-func createAxisMaterial() -> SCNMaterial {
-    let material = SCNMaterial()
-    material.diffuse.contents = UIColor.red  // Color can be changed based on the axis color requirement
-    material.specular.contents = UIColor.white  // Highlights
-    // material.transparency = 0.5 // Semi-transparent
-    material.fillMode = .lines // outline
-    material.shaderModifiers = [
-        SCNShaderModifierEntryPoint.fragment: """
-        #pragma arguments
-        uniform float intensity;
-
-        #pragma transparent
-        #pragma body
-
-        vec4 originalColor = _output.color;
-        float depth = gl_FragCoord.z / gl_FragCoord.w;
-        float attenuation = 1.0 - depth * intensity;
-        _output.color = originalColor * attenuation;
-        """
-    ]
-    //    material.writesToDepthBuffer = true
-    //    material.metalness.contents = 1.0  // Metal-like properties
-    return material
-}
 
 func createAxis() -> SCNNode {
     // Create a cylinder that is thin and long
