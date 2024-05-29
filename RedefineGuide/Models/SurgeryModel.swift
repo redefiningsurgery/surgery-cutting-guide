@@ -121,6 +121,14 @@ class SurgeryModel: NSObject, ObservableObject {
             logger.error("saveSnapshot: \(error.localizedDescription)")
         }
     }
+    
+    @MainActor
+    func getOverlayClipBounds() -> CGRect? {
+        guard phase == .aligning else {
+            return nil
+        }
+        return overlayBounds
+    }
 }
 
 

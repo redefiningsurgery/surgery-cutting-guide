@@ -5,6 +5,8 @@ import ARKit
 import Combine
 import SwiftProtobuf
 
+let maxBoundingBoxSizeOfOverlayInMeters: Float = 0.1
+
 class SurgeryController: NSObject {
     let model: SurgeryModel
     private var logger = RedefineLogger("SurgeryController")
@@ -61,6 +63,10 @@ class SurgeryController: NSObject {
         let depth = max.z - min.z
         logger.info("CAD native dimensions: width=\(width), height=\(height), depth=\(depth)")
 
+        guard width <= maxBoundingBoxSizeOfOverlayInMeters && height <= maxBoundingBoxSizeOfOverlayInMeters && depth <= maxBoundingBoxSizeOfOverlayInMeters else {
+            throw logger.logAndGetError("Overlay CAD model was too big.  It needs adjusted.  Dimensions in meters: width=\(width), height=\(height), depth=\(depth)")
+        }
+        
         // temporary hack to get the model sized properly
         //modelNode.scaleToWidth(centimeters: 20)
         // make it translucent
@@ -101,11 +107,8 @@ extension SurgeryController: ARSessionDelegate {
                 if overlayNode.parent == nil {
                     self.logger.error("OVERLAY GOT REMOVED DURING ALIGNMENT!!!!")
                 }
-                overlayNode.position = getPositionInFrontOfCamera(cameraTransform: frame.camera.transform, distanceMeters: 0.2)
+                updateOverlayNodePositionAndOrientation(cameraTransform: frame.camera.transform, overlayNode: overlayNode, distanceMeters: 0.2)
                 self.model.overlayBounds = overlayNode.getBoundingBoxInScreenCoords(in: sceneView)
-            } else if self.model.overlayBounds != nil {
-                // ensures it is removed from the main view
-                self.model.overlayBounds = nil
             }
             // just a spot check because this might have happened.  if this doesn't occur for a while, remove it
             if self.addedOverlayToScene, self.overlayNode?.parent == nil {
@@ -265,8 +268,8 @@ extension SurgeryController: SurgeryModelDelegate {
                     self.logger.info("Tracking task ended.")
                     return
                 }
-                guard maxTrackingFrames == 0 || trackingCount < maxTrackingFrames else {
-                    self.logger.info("Stopped after maxTrackingFrames \(maxTrackingFrames) frames")
+                guard Settings.shared.continuouslyTrack || trackingCount == 0 else {
+                    self.logger.info("Stopped tracking after first one due to continuously_track being disabled")
                     return
                 }
                 do {

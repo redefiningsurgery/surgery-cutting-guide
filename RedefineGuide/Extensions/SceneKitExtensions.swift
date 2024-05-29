@@ -106,6 +106,41 @@ func getPositionInFrontOfCamera(cameraTransform: simd_float4x4, distanceMeters: 
     return cameraPosition + adjustedForwardPosition
 }
 
+func updateOverlayNodePositionAndOrientation(cameraTransform: simd_float4x4, overlayNode: SCNNode, distanceMeters: Float) {
+    // Positioning the overlay node in front of the camera
+    let cameraPosition = SCNVector3(cameraTransform.columns.3.x, cameraTransform.columns.3.y, cameraTransform.columns.3.z)
+    let forwardVector = SCNVector3(-cameraTransform.columns.2.x, -cameraTransform.columns.2.y, -cameraTransform.columns.2.z)
+    let adjustedForwardPosition = forwardVector.normalized() * distanceMeters
+    let newPosition = cameraPosition + adjustedForwardPosition
+    overlayNode.position = newPosition
+    
+    // Orient the overlay node to face the camera by calculating the direction from the node to the camera
+    let cameraOrientation = simd_quatf(cameraTransform)
+    overlayNode.simdOrientation = cameraOrientation
+    // todo: this works but not when the phone rotates.  for that, you could detect device orientation and apply eulerAngles
+    // overlayNode.eulerAngles = SCNVector3(0, Float.pi, 0)
+//
+//    let directionToCamera = (cameraPosition - overlayNode.position).normalized()
+//    let nodeFront = SCNVector3(0, 0, -1) // Default front direction in SceneKit
+//    let rotation = SCNVector3.rotationFrom(vector: nodeFront, toVector: directionToCamera)
+//    overlayNode.orientation = SCNQuaternion(rotation.x, rotation.y, rotation.z, rotation.w)
+}
+
+//
+//func updateOverlayNodePositionAndOrientation(cameraTransform: simd_float4x4, overlayNode: SCNNode, distanceMeters: Float) {
+//    // Calculate the new position for the overlay node in front of the camera
+//    let cameraPosition = simd_make_float3(cameraTransform.columns.3)
+//    let forwardVector = -simd_make_float3(cameraTransform.columns.2)
+//    let newPosition = cameraPosition + forwardVector * distanceMeters
+//    overlayNode.simdPosition = newPosition
+//
+//    // Create a look-at rotation matrix to face the camera
+//    let upVector = simd_make_float3(cameraTransform.columns.1)
+//    let lookAtMatrix = simd_float4x4(simd_lookAt(eye: newPosition, center: cameraPosition, up: upVector))
+//    overlayNode.simdOrientation = simd_quatf(lookAtMatrix)
+//}
+
+
 extension SCNVector3 {
     func normalized() -> SCNVector3 {
         let length = sqrt(x * x + y * y + z * z)
@@ -115,8 +150,31 @@ extension SCNVector3 {
     static func +(lhs: SCNVector3, rhs: SCNVector3) -> SCNVector3 {
         return SCNVector3(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z)
     }
-    
+
+    static func -(lhs: SCNVector3, rhs: SCNVector3) -> SCNVector3 {
+        return SCNVector3(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z)
+    }
+
     static func *(vector: SCNVector3, scalar: Float) -> SCNVector3 {
         return SCNVector3(vector.x * scalar, vector.y * scalar, vector.z * scalar)
+    }
+    
+    static func rotationFrom(vector: SCNVector3, toVector: SCNVector3) -> SCNVector4 {
+        let cosTheta = vector.dot(toVector)
+        let rotationAxis = vector.cross(toVector).normalized()
+        let theta = acos(min(max(cosTheta, -1.0), 1.0)) // Clamp cosTheta to avoid numerical issues
+        let halfTheta = theta / 2.0
+        let sinHalfTheta = sin(halfTheta)
+        return SCNVector4(rotationAxis.x * sinHalfTheta, rotationAxis.y * sinHalfTheta, rotationAxis.z * sinHalfTheta, cos(halfTheta))
+    }
+    
+    func dot(_ vector: SCNVector3) -> Float {
+        return x * vector.x + y * vector.y + z * vector.z
+    }
+
+    func cross(_ vector: SCNVector3) -> SCNVector3 {
+        return SCNVector3(y * vector.z - z * vector.y,
+                          z * vector.x - x * vector.z,
+                          x * vector.y - y * vector.x)
     }
 }

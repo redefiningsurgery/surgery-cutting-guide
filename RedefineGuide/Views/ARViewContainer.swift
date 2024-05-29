@@ -12,7 +12,7 @@ struct ARViewContainer: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: ARSCNView, context: Context) {
-        updateMask(in: uiView, for: model.overlayBounds)
+        updateMask(in: uiView, for: model.getOverlayClipBounds())
     }
     
     private func getBlurEffectView(_ view: UIView) -> UIVisualEffectView? {
