@@ -22,6 +22,9 @@ class SurgeryModel: NSObject, ObservableObject {
     /// Only useful if errorExists is true.  Contains some details of the error message like: "Device is in low power mode.  Turn off low power mode to re-enable recording"
     @Published private(set) var errorMessage: String = ""
 
+    /// The bounding box of the overlay.  Only useful during the aligning phase
+    @Published var overlayBounds: CGRect? = nil
+    
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")
 
