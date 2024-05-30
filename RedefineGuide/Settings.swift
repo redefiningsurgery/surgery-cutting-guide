@@ -7,38 +7,38 @@ fileprivate let continuously_track_key = "continuously_track"
 class Settings: ObservableObject {
     static let shared = Settings()
 
-    /// The url to the web server for development testing
-    var devServerUrl: String {
-        get {
-            return _serverUrl
-        }
-        set {
-            _serverUrl = newValue
-            
-            Settings.persistedSettings.set(_serverUrl, forKey: server_url_key)
+    @Published var devServerUrl: String {
+        didSet {
+            UserDefaults.standard.set(devServerUrl, forKey: server_url_key)
         }
     }
-    private var _serverUrl: String
-    
-    /// When true, it continuously calls the server to update the bone position.  When false, it just performs an initial tracking.  Should only be false for testing and eventually removed
-    var continuouslyTrack: Bool {
-        get {
-            return _continuously_track
-        }
-        set {
-            _continuously_track = newValue
-            
-            Settings.persistedSettings.set(_continuously_track, forKey: continuously_track_key)
+
+    @Published var continuouslyTrack: Bool {
+        didSet {
+            UserDefaults.standard.set(continuouslyTrack, forKey: continuously_track_key)
         }
     }
-    private var _continuously_track: Bool
     
     private init() {
-        _serverUrl = Settings.persistedSettings.string(forKey: server_url_key) ?? "unnamed device"
-        _continuously_track = Settings.persistedSettings.bool(forKey: continuously_track_key)
+        devServerUrl = ""
+        continuouslyTrack = false
+        setValues()
+
+        // Setup notification observer
+        NotificationCenter.default.addObserver(self, selector: #selector(userDefaultsDidChange), name: UserDefaults.didChangeNotification, object: nil)
+    }
+
+    @objc private func userDefaultsDidChange(notification: Notification) {
+        setValues()
     }
     
-    private static var persistedSettings: UserDefaults {
-        return UserDefaults.standard
+    private func setValues() {
+        self.devServerUrl = UserDefaults.standard.string(forKey: server_url_key) ?? "http://default-url.com"
+        self.continuouslyTrack = UserDefaults.standard.bool(forKey: continuously_track_key)
+    }
+    
+    deinit {
+        // Remove observer
+        NotificationCenter.default.removeObserver(self)
     }
 }

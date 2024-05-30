@@ -108,7 +108,6 @@ struct SurgeryView: View {
                 VStack {
                     Text("Locking Onto Femur")
                         .font(.title)
-                    Text("This takes about 12 seconds")
                     ProgressView()
                         .scaleEffect(2)
                         .padding()
