@@ -19,7 +19,6 @@ class SurgeryController: NSObject {
     private var trackingTask: Task<(), Never>? = nil
     /// The number of times the tracking has been updated.  Each time is a trip to the server
     private var trackingCount: Int = 0
-    private var addedOverlayToScene: Bool = false
 
     override init() {
         model = SurgeryModel()
@@ -82,7 +81,6 @@ class SurgeryController: NSObject {
             logger.info("Removed overlay")
             overlayNode.removeFromParentNode()
             self.overlayNode = nil
-            self.addedOverlayToScene = false
         }
     }
 }
@@ -94,28 +92,43 @@ extension SurgeryController: ARSCNViewDelegate {
 }
 
 extension SurgeryController: ARSessionDelegate {
+
+    fileprivate func ensureOverlayIsInScene() {
+        guard let overlayNode = self.overlayNode, let sceneView = self.sceneView else {
+            return
+        }
+        if overlayNode.parent == nil {
+            self.logger.info("Adding overlay to the scene")
+            sceneView.scene.rootNode.addChildNode(overlayNode)
+        }
+    }
+
+    fileprivate func ensureOverlayIsNotInScene() {
+        guard let overlayNode = self.overlayNode else {
+            return
+        }
+        if overlayNode.parent != nil {
+            self.logger.info("Removing overlay from the scene")
+            overlayNode.removeFromParentNode()
+        }
+    }
+
     /// Called every time the ARFrame is updated
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         DispatchQueue.main.async {
-            // add the overlay if necessary, and update its position during alignment to right in front of the camera
-            if self.model.phase == .aligning, let overlayNode = self.overlayNode, let sceneView = self.sceneView {
-                if !self.addedOverlayToScene {
-                    self.logger.info("Adding overlay to the scene")
-                    sceneView.scene.rootNode.addChildNode(overlayNode)
-                    self.addedOverlayToScene = true
+            switch self.model.phase {
+            case .aligning:
+                self.ensureOverlayIsInScene()
+                if let overlayNode = self.overlayNode, let sceneView = self.sceneView {
+                    updateOverlayNodePositionAndOrientation(cameraTransform: frame.camera.transform, overlayNode: overlayNode, distanceMeters: 0.2)
+                    self.model.overlayBounds = overlayNode.getBoundingBoxInScreenCoords(in: sceneView)
                 }
-                if overlayNode.parent == nil {
-                    self.logger.error("OVERLAY GOT REMOVED DURING ALIGNMENT!!!!")
-                }
-                updateOverlayNodePositionAndOrientation(cameraTransform: frame.camera.transform, overlayNode: overlayNode, distanceMeters: 0.2)
-                self.model.overlayBounds = overlayNode.getBoundingBoxInScreenCoords(in: sceneView)
-            }
-            // just a spot check because this might have happened.  if this doesn't occur for a while, remove it
-            if self.addedOverlayToScene, self.overlayNode?.parent == nil {
-                self.logger.error("OVERLAY GOT REMOVED FROM THE SCENE")
+            case .tracking:
+                self.ensureOverlayIsInScene()
+            default:
+                self.ensureOverlayIsNotInScene()
             }
         }
-        // if this is the first frame in the session, adjust the world origin so the center is slightly in front of the phone
     }
 }
 
@@ -275,6 +288,10 @@ extension SurgeryController: SurgeryModelDelegate {
                 do {
                     try await trackOnce()
                 } catch {
+                    guard !Task.isCancelled else {
+                        self.logger.info("Tracking task ended during trackOnce")
+                        return
+                    }
                     logger.error("Tracking failed: \(error.localizedDescription)")
                     await model.setError(errorTitle: "Tracking failed", errorMessage: error.localizedDescription)
                     // TODO: user should be able to retry, in which case this should not return

@@ -34,9 +34,8 @@ struct SurgeryView: View {
         } else if model.phase == .starting {
             Centered {
                 VStack {
-                    Text("Initializing Patient Data")
+                    Text("Loading Patient Data")
                         .font(.title)
-                    Text("This takes about 10 seconds")
                     ProgressView()
                         .scaleEffect(2)
                         .padding()
@@ -80,6 +79,16 @@ struct SurgeryView: View {
                                 .frame(width: 76, height: 76)
                         )
                 })
+            }
+            .overlay(alignment: .bottomTrailing) {
+                ConfirmButton("Cancel") {
+                    model.stopSession()
+                }
+                .alertTitle("Are you sure?")
+                .alertMessage("Do you really want to cancel this procedure?")
+                .alertCancelButton("No")
+                .alertConfirmButton("Yes")
+                .padding()
             }
             .alert(model.errorTitle, isPresented: $model.errorVisible) {
                 Button(role: .cancel) {
@@ -159,6 +168,7 @@ struct SurgeryView: View {
 #Preview("Aligning") {
     let model = SurgeryModel()
     model.phase = .aligning
+    model.overlayBounds = CGRect(x: 100, y: 100, width: 100, height: 200)
     return SurgeryView(model: model)
 }
 
