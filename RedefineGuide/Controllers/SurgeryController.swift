@@ -206,7 +206,11 @@ extension SurgeryController: SurgeryModelDelegate {
             throw logger.logAndGetError("Server url has not been set yet.  Please set it in the Settings for the app.")
         }
         
-        let response = try await executeRequest(of: Requests_GetModelOutput.self, method: "PUT", path: "sessions")
+        var request = Requests_CreateSessionInput()
+        request.cadModelName = Settings.shared.cadModelName
+        let requestData = try request.serializedData()
+
+        let response = try await executeRequest(of: Requests_GetModelOutput.self, method: "PUT", path: "sessions", body: requestData)
         
         guard !response.sessionID.isEmpty else {
             throw logger.logAndGetError("No session ID passed from server")

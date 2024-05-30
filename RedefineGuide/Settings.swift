@@ -2,6 +2,7 @@ import Foundation
 import Combine
 
 fileprivate let server_url_key = "server_url"
+fileprivate let cad_model_name_key = "cad_model_name"
 fileprivate let continuously_track_key = "continuously_track"
 
 class Settings: ObservableObject {
@@ -13,12 +14,23 @@ class Settings: ObservableObject {
             return _serverUrl
         }
         set {
-            _serverUrl = newValue
-            
-            Settings.persistedSettings.set(_serverUrl, forKey: server_url_key)
+            _serverUrl = newValue            
+            Settings.persistedSettings.set(newValue, forKey: server_url_key)
         }
     }
     private var _serverUrl: String
+
+    /// The file name of the cad model on the server to use
+    var cadModelName: String {
+        get {
+            return _cadModelName
+        }
+        set {
+            _cadModelName = newValue
+            Settings.persistedSettings.set(newValue, forKey: cad_model_name_key)
+        }
+    }
+    private var _cadModelName: String
     
     /// When true, it continuously calls the server to update the bone position.  When false, it just performs an initial tracking.  Should only be false for testing and eventually removed
     var continuouslyTrack: Bool {
@@ -27,14 +39,14 @@ class Settings: ObservableObject {
         }
         set {
             _continuously_track = newValue
-            
-            Settings.persistedSettings.set(_continuously_track, forKey: continuously_track_key)
+            Settings.persistedSettings.set(newValue, forKey: continuously_track_key)
         }
     }
     private var _continuously_track: Bool
     
     private init() {
         _serverUrl = Settings.persistedSettings.string(forKey: server_url_key) ?? "unnamed device"
+        _cadModelName = Settings.persistedSettings.string(forKey: cad_model_name_key) ?? ""
         _continuously_track = Settings.persistedSettings.bool(forKey: continuously_track_key)
     }
     

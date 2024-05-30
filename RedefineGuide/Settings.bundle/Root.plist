@@ -40,6 +40,22 @@
 			<key>DefaultValue</key>
 			<true/>
 		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSTextFieldSpecifier</string>
+			<key>Title</key>
+			<string>CAD model name</string>
+			<key>Key</key>
+			<string>cad_model_name</string>
+			<key>KeyboardType</key>			
+			<string>Alphabet</string>
+			<key>IsSecure</key>
+			<false/>
+			<key>AutocapitalizationType</key>
+			<string>None</string>
+			<key>AutocorrectionType</key>
+			<string>No</string>
+		</dict>		
 	</array>
 </dict>
 </plist>
