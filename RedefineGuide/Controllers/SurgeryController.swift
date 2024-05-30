@@ -39,7 +39,7 @@ class SurgeryController: NSObject {
             throw logger.logAndGetError("No sceneView.  Cannot start ARSession")
         }
         let configuration = ARWorldTrackingConfiguration()
-        configuration.frameSemantics.insert(.sceneDepth)
+        configuration.frameSemantics.insert(.smoothedSceneDepth)
         // https://developer.apple.com/documentation/arkit/arkit_in_ios/content_anchors/scanning_and_detecting_3d_objects
         configuration.planeDetection = .horizontal
         configuration.isAutoFocusEnabled = true

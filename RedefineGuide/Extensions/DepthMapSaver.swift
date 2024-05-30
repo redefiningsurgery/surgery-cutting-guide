@@ -4,8 +4,8 @@ import ARKit
 
 /// Constructs the request body to get tracking position from the server
 func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Requests_GetPositionInput {
-    guard let depthData = frame.sceneDepth else {
-        throw getError("ARFrame did not have sceneDepth data")
+    guard let depthData = frame.smoothedSceneDepth else {
+        throw getError("ARFrame did not have smoothedSceneDepth data")
     }
 
     var request = Requests_GetPositionInput()

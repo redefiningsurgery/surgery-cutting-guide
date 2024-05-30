@@ -11,7 +11,7 @@ class AppInitializer {
     }
 
     func start() async {
-        guard ARWorldTrackingConfiguration.isSupported && ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) && ARWorldTrackingConfiguration.supportsFrameSemantics(.bodyDetection) else {
+        guard ARWorldTrackingConfiguration.isSupported && ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) && ARWorldTrackingConfiguration.supportsFrameSemantics(.smoothedSceneDepth) else {
             logger.warning("Device does not have necessary AR capabilities")
             await MainActor.run {
                 model.status = .failed("This device does not have the required AR capabilities.")
