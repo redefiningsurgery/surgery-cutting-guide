@@ -5,7 +5,8 @@ import ARKit
 import Combine
 import SwiftProtobuf
 
-let maxBoundingBoxSizeOfOverlayInMeters: Float = 0.1
+let minBoundingBoxSideOfOverlayInMeters: Float = 0.01
+let maxBoundingBoxSideOfOverlayInMeters: Float = 0.1
 
 class SurgeryController: NSObject {
     let model: SurgeryModel
@@ -62,7 +63,9 @@ class SurgeryController: NSObject {
         let depth = max.z - min.z
         logger.info("CAD native dimensions: width=\(width), height=\(height), depth=\(depth)")
 
-        guard width <= maxBoundingBoxSizeOfOverlayInMeters && height <= maxBoundingBoxSizeOfOverlayInMeters && depth <= maxBoundingBoxSizeOfOverlayInMeters else {
+        guard width <= maxBoundingBoxSideOfOverlayInMeters && width >= minBoundingBoxSideOfOverlayInMeters &&
+                height <= maxBoundingBoxSideOfOverlayInMeters && height >= minBoundingBoxSideOfOverlayInMeters &&
+                depth <= maxBoundingBoxSideOfOverlayInMeters && depth >= minBoundingBoxSideOfOverlayInMeters else {
             throw logger.logAndGetError("Overlay CAD model was too big.  It needs adjusted.  Dimensions in meters: width=\(width), height=\(height), depth=\(depth)")
         }
         
@@ -117,12 +120,6 @@ extension SurgeryController: ARSessionDelegate {
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         DispatchQueue.main.async {
             switch self.model.phase {
-            case .aligning:
-                self.ensureOverlayIsInScene()
-                if let overlayNode = self.overlayNode, let sceneView = self.sceneView {
-                    updateOverlayNodePositionAndOrientation(cameraTransform: frame.camera.transform, overlayNode: overlayNode, distanceMeters: 0.2)
-                    self.model.overlayBounds = overlayNode.getBoundingBoxInScreenCoords(in: sceneView)
-                }
             case .tracking:
                 self.ensureOverlayIsInScene()
             default:
@@ -334,10 +331,10 @@ extension SurgeryController: SurgeryModelDelegate {
         let position = SCNVector3(resultTransform.columns.3.x, resultTransform.columns.3.y, resultTransform.columns.3.z)
         let orientationVector = simd_quaternion(resultTransform).vector
         let orientation = SCNQuaternion(orientationVector.x, orientationVector.y, orientationVector.z, orientationVector.w)
-        if self.pinGuideNode == nil {
-            self.pinGuideNode = createAxis()
-        }
-        let axis = self.pinGuideNode!
+//        if self.pinGuideNode == nil {
+//            self.pinGuideNode = createAxis()
+//        }
+//        let axis = self.pinGuideNode!
 
         await MainActor.run {
             guard !Task.isCancelled else {
@@ -348,13 +345,13 @@ extension SurgeryController: SurgeryModelDelegate {
             overlayNode.orientation = orientation
             overlayNode.opacity = 0.8 // show more of it
 
-            if axis.parent == nil {
-                axis.position = SCNVector3(x: 0.06, y: 0, z: 0)
-                axis.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
-                
-                // WIP: add the axis for the first pin
-                overlayNode.addChildNode(axis)
-            }
+//            if axis.parent == nil {
+//                axis.position = SCNVector3(x: 0.06, y: 0, z: 0)
+//                axis.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
+//                
+//                // WIP: add the axis for the first pin
+//                overlayNode.addChildNode(axis)
+//            }
         }
     }
 

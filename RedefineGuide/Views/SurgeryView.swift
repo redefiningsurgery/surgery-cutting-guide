@@ -59,7 +59,7 @@ struct SurgeryView: View {
                     .font(.callout)
                     .multilineTextAlignment(.center)
                     .padding()
-                    .foregroundColor(.green)
+                    .foregroundColor(.black)
                     .background(
                         RoundedRectangle(cornerRadius: 4)
                             .fill(.green)
