@@ -66,6 +66,12 @@ struct SurgeryView: View {
                             .opacity(0.5)
                     )
             }
+            .overlay(alignment: .center) {
+                Image("Overlay")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 300)
+            }
             .overlay(alignment: .bottom) {
                 Button(action: {
                     model.startTracking()
