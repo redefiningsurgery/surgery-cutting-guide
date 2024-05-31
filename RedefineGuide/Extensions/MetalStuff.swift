@@ -80,7 +80,7 @@ class MetalStuff {
     }
 }
 
-
+ 
 func createAxisMaterial() -> SCNMaterial {
     let material = SCNMaterial()
 //    material.isDoubleSided = true
@@ -93,7 +93,13 @@ func createAxisMaterial() -> SCNMaterial {
     // https://github.com/theos/sdks/blob/ca52092676249546f08657d4fc0c8beb26a80510/iPhoneOS12.4.sdk/System/Library/Frameworks/SceneKit.framework/Headers/SCNShadable.h#L69
     // https://github.com/poloclub/CardiacAR/blob/24b73c6a92c65c052e51c22f8cee4b3eb65ed5d2/CardiacAR/SceneView.swift#L337
     // https://stackoverflow.com/questions/65233082/metal-arkit-get-z-distance-to-current-fragment-in-fragment-shader
+    // https://forums.developer.apple.com/forums/thread/724387
     // also worth sorta mentioning: https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
+    // https://rozengain.medium.com/using-coreml-in-arkit-for-object-segmentation-and-occlusion-988a6c7e18dd
+    // https://github.com/MasDennis/SegmentationAndOcclusion
+    // scn_node: https://developer.apple.com/documentation/scenekit/scnnode
+    
+    // todo: I don't think the screenPosition is right
     material.shaderModifiers = [
         .fragment: """
         #pragma arguments
@@ -107,6 +113,8 @@ func createAxisMaterial() -> SCNMaterial {
         float4 model_space_position = scn_node.modelViewTransform * float4(_surface.position, 1);
         float modelDepth = -model_space_position.z;
         
+        //        vec4 screenPos = u_modelViewProjectionTransform * _geometry.position;
+        //        screen_coords = (screenPos.xy / screenPos.w + 1.0) * 0.5;
         // diffuseTexcoord values are 0-1
         float2 screenPosition = _surface.diffuseTexcoord * float2(viewWidth, viewHeight);  // Assuming viewWidth and viewHeight are passed as uniforms
         float depthValue = depthTexture.sample(depthSampler, screenPosition).r; // Sample the depth texture using actual texture coordinates
