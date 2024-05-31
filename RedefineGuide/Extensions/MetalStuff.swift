@@ -91,6 +91,8 @@ func createAxisMaterial() -> SCNMaterial {
     // https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf
     // https://developer.apple.com/documentation/scenekit/scnshadermodifierentrypoint/1523791-surface
     // https://github.com/theos/sdks/blob/ca52092676249546f08657d4fc0c8beb26a80510/iPhoneOS12.4.sdk/System/Library/Frameworks/SceneKit.framework/Headers/SCNShadable.h#L69
+    // https://github.com/poloclub/CardiacAR/blob/24b73c6a92c65c052e51c22f8cee4b3eb65ed5d2/CardiacAR/SceneView.swift#L337
+    // https://stackoverflow.com/questions/65233082/metal-arkit-get-z-distance-to-current-fragment-in-fragment-shader
     material.shaderModifiers = [
         .fragment: """
         #pragma arguments
@@ -102,6 +104,11 @@ func createAxisMaterial() -> SCNMaterial {
         constexpr sampler depthSampler(coord::pixel);
 
         // diffuseTexcoord values are 0-1
+        float4 model_space_position = scn_node.modelViewTransform * float4(_surface.position.xyz, 1); // Works
+        model_space_position = model_space_position / model_space_position.w;
+        float modelDepth = dot(model_space_position.xyz, plane_equation.xyz) + plane_equation.w;
+        //        float modelDepth = model_space_position.z;
+        
         float2 screenPosition = _surface.diffuseTexcoord * float2(viewWidth, viewHeight);  // Assuming viewWidth and viewHeight are passed as uniforms
 
         float depthValue = depthTexture.sample(depthSampler, screenPosition).r; // Sample the depth texture using actual texture coordinates
@@ -118,7 +125,7 @@ func createAxisMaterial() -> SCNMaterial {
         
         float thresholdDepth = 0.5; // Example threshold, adjust as needed
         // if (depthValue <= depthValue) {
-        if (depthValue <= thresholdDepth) {
+        if (depthValue <= modelDepth) {
             _output.color.a = 0.0; // Make pixel fully transparent if an object is detected at or closer than the threshold
         } else {
             _output.color.a = 1.0; // Fully opaque if no object is detected within the threshold
