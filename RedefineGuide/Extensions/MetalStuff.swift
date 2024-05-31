@@ -93,6 +93,7 @@ func createAxisMaterial() -> SCNMaterial {
     // https://github.com/theos/sdks/blob/ca52092676249546f08657d4fc0c8beb26a80510/iPhoneOS12.4.sdk/System/Library/Frameworks/SceneKit.framework/Headers/SCNShadable.h#L69
     // https://github.com/poloclub/CardiacAR/blob/24b73c6a92c65c052e51c22f8cee4b3eb65ed5d2/CardiacAR/SceneView.swift#L337
     // https://stackoverflow.com/questions/65233082/metal-arkit-get-z-distance-to-current-fragment-in-fragment-shader
+    // also worth sorta mentioning: https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
     material.shaderModifiers = [
         .fragment: """
         #pragma arguments
@@ -103,35 +104,18 @@ func createAxisMaterial() -> SCNMaterial {
         #pragma body
         constexpr sampler depthSampler(coord::pixel);
 
+        float4 model_space_position = scn_node.modelViewTransform * float4(_surface.position, 1);
+        float modelDepth = -model_space_position.z;
+        
         // diffuseTexcoord values are 0-1
-        float4 model_space_position = scn_node.modelViewTransform * float4(_surface.position.xyz, 1); // Works
-        model_space_position = model_space_position / model_space_position.w;
-        float modelDepth = dot(model_space_position.xyz, plane_equation.xyz) + plane_equation.w;
-        //        float modelDepth = model_space_position.z;
-        
         float2 screenPosition = _surface.diffuseTexcoord * float2(viewWidth, viewHeight);  // Assuming viewWidth and viewHeight are passed as uniforms
-
         float depthValue = depthTexture.sample(depthSampler, screenPosition).r; // Sample the depth texture using actual texture coordinates
-        // float depthValue = depthTexture.sample(depthSampler, float2(0.0, 0.0)).r; // Sample the depth texture at (0,0)
-
-        // float4 has xyzw
-        // float depthFromCamera = -_surface.position.z / (_surface.position.w);  // Normalize the depth
-
-        //        float zNear = 1.0;
-        //        float zFar = 100.0; // default value from cameras
-        //        float z = _surface.position.z;  // View space depth (should be negative)
-        //        float zNDC = (2.0 * z - zNear - zFar) / (zFar - zNear);  // Convert to  normalized device coordinate (NDC)
-        //        float depthInMeters = (2.0 * zNear * zFar) / (zFar + zNear - zNDC * (zFar - zNear));  // Convert to meters
         
-        float thresholdDepth = 0.5; // Example threshold, adjust as needed
-        // if (depthValue <= depthValue) {
         if (depthValue <= modelDepth) {
-            _output.color.a = 0.0; // Make pixel fully transparent if an object is detected at or closer than the threshold
+            discard_fragment();
         } else {
-            _output.color.a = 1.0; // Fully opaque if no object is detected within the threshold
+            _output.color.a = 1.0;
         }
-        // _output.color = float4(0, 0, 0, 1.0);
-        // _output.color.a = clamp(depthValue, 0.0, 1.0);
         """,
     ]
     return material
