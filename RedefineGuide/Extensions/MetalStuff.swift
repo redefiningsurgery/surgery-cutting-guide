@@ -98,6 +98,7 @@ func createAxisMaterial() -> SCNMaterial {
     // https://rozengain.medium.com/using-coreml-in-arkit-for-object-segmentation-and-occlusion-988a6c7e18dd
     // https://github.com/MasDennis/SegmentationAndOcclusion
     // scn_node: https://developer.apple.com/documentation/scenekit/scnnode
+    // some cool helpers: https://gist.github.com/Starmel/8dc58bad4065a180f022db57706e739a
     
     // todo: I don't think the screenPosition is right
     material.shaderModifiers = [
