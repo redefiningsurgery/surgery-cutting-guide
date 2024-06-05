@@ -21,7 +21,17 @@ class SurgeryModel: NSObject, ObservableObject {
     @Published private(set) var errorTitle: String = ""
     /// Only useful if errorExists is true.  Contains some details of the error message like: "Device is in low power mode.  Turn off low power mode to re-enable recording"
     @Published private(set) var errorMessage: String = ""
-    
+
+    @Published var axis1X: Float = -0.01
+    @Published var axis1Y: Float = -0.001
+    @Published var axis1Z: Float = 0.083
+    @Published var axis1Angles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
+
+    @Published var axis2X: Float = -0.015
+    @Published var axis2Y: Float = -0.003
+    @Published var axis2Z: Float = 0.081
+    @Published var axis2Angles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
+
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")
 

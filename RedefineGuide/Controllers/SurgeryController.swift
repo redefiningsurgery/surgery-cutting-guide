@@ -14,12 +14,14 @@ class SurgeryController: NSObject {
     private var sceneView: ARSCNView? = nil
     private var scene: SCNScene? = nil
     private var overlayNode: SCNNode?
-    private var pinGuideNode: SCNNode?
+    private var axis1: SCNNode?
+    private var axis2: SCNNode?
     private var showOverlaySubscription: AnyCancellable?
     private var sessionId: String? = nil
     private var trackingTask: Task<(), Never>? = nil
     /// The number of times the tracking has been updated.  Each time is a trip to the server
     private var trackingCount: Int = 0
+    private var cancellables: Set<AnyCancellable> = []
 
     override init() {
         model = SurgeryModel()
@@ -323,10 +325,6 @@ extension SurgeryController: SurgeryModelDelegate {
         let position = SCNVector3(resultTransform.columns.3.x, resultTransform.columns.3.y, resultTransform.columns.3.z)
         let orientationVector = simd_quaternion(resultTransform).vector
         let orientation = SCNQuaternion(orientationVector.x, orientationVector.y, orientationVector.z, orientationVector.w)
-//        if self.pinGuideNode == nil {
-//            self.pinGuideNode = createAxis()
-//        }
-//        let axis = self.pinGuideNode!
 
         await MainActor.run {
             guard !Task.isCancelled else {
@@ -337,16 +335,29 @@ extension SurgeryController: SurgeryModelDelegate {
             overlayNode.orientation = orientation
             overlayNode.opacity = 0.8
 
-//            if axis.parent == nil {
-//                axis.position = SCNVector3(x: 0.06, y: 0, z: 0)
-//                axis.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
-//                
-//                // WIP: add the axis for the first pin
-//                overlayNode.addChildNode(axis)
-//            }
+            ensureAxises(overlayNode: overlayNode)
         }
     }
+    
+    @MainActor
+    func ensureAxises(overlayNode: SCNNode) {
+        guard axis1 == nil && axis2 == nil else {
+            return
+        }
+        
+        logger.info("Creating pin guide axises")
+        let axis1 = createAxis()
+        axis1.eulerAngles = model.axis1Angles
+        axis1.position = SCNVector3(x: model.axis1X, y: model.axis1Y, z: model.axis1Z)
+        self.axis1 = axis1
+        overlayNode.addChildNode(axis1)
 
+        let axis2 = createAxis()
+        axis2.eulerAngles = model.axis2Angles
+        axis2.position = SCNVector3(x: model.axis2X, y: model.axis2Y, z: model.axis2Z)
+        self.axis2 = axis2
+        overlayNode.addChildNode(axis2)
+    }
 }
 
 // Helper function to create a combined rotation and translation matrix

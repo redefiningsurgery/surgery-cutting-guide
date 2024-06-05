@@ -67,31 +67,16 @@ extension SCNNode {
 
 func createAxis() -> SCNNode {
     // Create a cylinder that is thin and long
-    let cylinder = SCNCylinder(radius: 0.002, height: 1.0)  // Adjust radius for thinness and height for length
+    let cylinder = SCNCylinder(radius: 0.002, height: 0.1)
 
     // Create a material and assign a color
     let material = SCNMaterial()
-    material.diffuse.contents = UIColor.red  // Color can be changed based on the axis color requirement
-    material.specular.contents = UIColor.white  // Highlights
-//    material.metalness.contents = 1.0  // Metal-like properties
+    material.diffuse.contents = UIColor.blue
+    material.transparency = 1 // parent may be translucent so make this solid
     cylinder.materials = [material]
 
     // Create a node for the cylinder
     let cylinderNode = SCNNode(geometry: cylinder)
-    cylinderNode.position = SCNVector3(x: 0, y: 0, z: -0.5)  // Position the cylinder in the scene
-
-    // Optionally, rotate the cylinder to align it as needed
-    // Here, it's aligned along the z-axis
-    cylinderNode.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
-
-    // to make light for the specular highlights
-//    // Ensure there's a light in the scene to see the specular highlights
-//    let lightNode = SCNNode()
-//    lightNode.light = SCNLight()
-//    lightNode.light!.type = .omni
-//    lightNode.position = SCNVector3(x: 0, y: 1, z: 1)
-//    view.scene.rootNode.addChildNode(lightNode)
-    
     return cylinderNode
 }
 
