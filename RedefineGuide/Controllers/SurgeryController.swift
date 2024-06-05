@@ -223,20 +223,7 @@ extension SurgeryController: SurgeryModelDelegate {
             model.phase = .aligning
         }
     }
-    
-    // Saves request data to a file, which is useful when there is no connectivity to the server and you are willing to copy the files manually from the phone to the server
-    func saveSnapshot() async throws {
-        guard let frame = await self.sceneView?.session.currentFrame else {
-            throw logger.logAndGetError("Could not get current AR frame")
-        }
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-        let sessionId = dateFormatter.string(from: Date())
-        // use a fake session ID
-        let request = try makeTrackingRequest(sessionId: sessionId, frame: frame)
-        try saveTrackingRequest(request)
-    }
-    
+       
     func stopSession() async throws {
         if let trackingTask = trackingTask, !trackingTask.isCancelled {
             trackingTask.cancel()
