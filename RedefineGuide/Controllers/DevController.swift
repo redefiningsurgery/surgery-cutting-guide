@@ -55,7 +55,7 @@ class DevController: NSObject {
 
     @MainActor
     func loadOverlay(frame: ARFrame, scene: SCNScene) throws {
-        guard let modelURL = Bundle.main.url(forResource: "sample-femur", withExtension: "usdz") else {
+        guard let modelURL = Bundle.main.url(forResource: "femur-3", withExtension: "usdz") else {
             throw logger.logAndGetError("Could not find model file")
         }
 
@@ -72,11 +72,11 @@ class DevController: NSObject {
         let depth = max.z - min.z
         logger.info("CAD native dimensions: width=\(width), height=\(height), depth=\(depth)")
 
-//        modelNode.opacity = 0.8
+        modelNode.opacity = 0.8
         overlayNode = modelNode // Store the reference
         
-        modelNode.position = SCNVector3(x: -0.020270478, y: -0.0797465, z: -0.13184097)
-        modelNode.orientation = SCNVector4(x: 0.998327, y: -0.0042214324, z: 0.056730166, w: 0.0103404)
+        modelNode.position = SCNVector3(x: -0.008548286, y: -0.19338854, z: -0.1764691)
+        modelNode.orientation = SCNVector4(x: -0.2683963, y: 0.09091471, z: 0.07285623, w: 0.9562373)
         
         //getPositionInFrontOfCamera(cameraTransform: transform, distanceMeters: 0.2)
 
@@ -89,9 +89,9 @@ class DevController: NSObject {
         }
         self.axisMaterial = material
         
-        axis1.position = SCNVector3(x: 0.0, y: 0, z: 0)
-        axis1.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
-        modelNode.addChildNode(axis1)
+//        axis1.position = SCNVector3(x: 0.0, y: 0, z: 0)
+//        axis1.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
+//        modelNode.addChildNode(axis1)
 
         addedOverlayToScene = true
     }

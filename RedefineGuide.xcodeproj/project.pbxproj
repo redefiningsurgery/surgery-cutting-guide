@@ -34,6 +34,7 @@
 		973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF382BBFB3670083CBED /* SurgeryController.swift */; };
 		973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3A2BC433EE0083CBED /* SurgeryView.swift */; };
 		973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3E2BC456A20083CBED /* SurgeryModel.swift */; };
+		974CCD1D2C10DAF900F0BEFE /* femur-3.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 974CCD1C2C10DAF900F0BEFE /* femur-3.usdz */; };
 		977429EE2BC70D9C0069F4BA /* SceneKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */; };
 		97936C8F2BD6DDFF005930F4 /* DepthMapSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */; };
 		97936C9D2BD6DF9A005930F4 /* PngEncoder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 97936C9A2BD6DF9A005930F4 /* PngEncoder.mm */; };
@@ -93,6 +94,7 @@
 		973AEF382BBFB3670083CBED /* SurgeryController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryController.swift; sourceTree = "<group>"; };
 		973AEF3A2BC433EE0083CBED /* SurgeryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryView.swift; sourceTree = "<group>"; };
 		973AEF3E2BC456A20083CBED /* SurgeryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryModel.swift; sourceTree = "<group>"; };
+		974CCD1C2C10DAF900F0BEFE /* femur-3.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "femur-3.usdz"; sourceTree = "<group>"; };
 		977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneKitExtensions.swift; sourceTree = "<group>"; };
 		97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthMapSaver.swift; sourceTree = "<group>"; };
 		97936C982BD6DF99005930F4 /* RedefineGuide-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RedefineGuide-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -183,6 +185,7 @@
 				973AEF2A2BBFAA070083CBED /* ThreadSafeDictionary.swift */,
 				973AEF2B2BBFAA080083CBED /* ThreadSafeQueue.swift */,
 				973AEEF02BBF3FF90083CBED /* Assets.xcassets */,
+				974CCD1C2C10DAF900F0BEFE /* femur-3.usdz */,
 				971019AB2BFCEF0C00A7F792 /* sample-femur.usdz */,
 				97936C952BD6DF47005930F4 /* CCode */,
 				973AEF1C2BBF425B0083CBED /* Controllers */,
@@ -391,6 +394,7 @@
 				973AEEF42BBF3FF90083CBED /* Preview Assets.xcassets in Resources */,
 				97C705112BFE455000194835 /* Settings.bundle in Resources */,
 				973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */,
+				974CCD1D2C10DAF900F0BEFE /* femur-3.usdz in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
