@@ -54,46 +54,33 @@ struct SurgeryView: View {
             VStack {
                 ARViewContainer(model: model)
             }
-            .overlay(alignment: .top) {
-                Text("Align the femur with the overlay and press the start button")
-                    .font(.callout)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                    .foregroundColor(.black)
-                    .background(
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(.green)
-                            .opacity(0.5)
-                    )
-            }
             .overlay(alignment: .center) {
                 Image("Overlay")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 300)
             }
-            .overlay(alignment: .bottom) {
-                Button(action: {
-                    model.startTracking()
-                }, label: {
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 70, height: 70)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white, lineWidth: 6)
-                                .frame(width: 76, height: 76)
-                        )
-                })
-            }
             .overlay(alignment: .bottomTrailing) {
-                ConfirmButton("Cancel") {
-                    model.stopSession()
+                HStack {
+                    Button(action: {
+                        model.startTracking()
+                    }, label: {
+                        Text("Track")
+                            .padding(8)
+                            .fontWeight(.heavy)
+                            .foregroundColor(.white)
+                            .background(.primaryGreen, in: .rect(cornerRadius: 4))
+                    })
+                    ConfirmButton(action: {
+                        model.stopSession()
+                    }, label: {
+                        Text("Cancel")
+                    })
+                    .alertTitle("Are you sure?")
+                    .alertMessage("Do you really want to cancel this procedure?")
+                    .alertCancelButton("No")
+                    .alertConfirmButton("Yes")
                 }
-                .alertTitle("Are you sure?")
-                .alertMessage("Do you really want to cancel this procedure?")
-                .alertCancelButton("No")
-                .alertConfirmButton("Yes")
                 .padding()
             }
             .alert(model.errorTitle, isPresented: $model.errorVisible) {
