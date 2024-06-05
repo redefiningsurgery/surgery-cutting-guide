@@ -163,3 +163,60 @@ extension SCNVector3 {
                           x * vector.y - y * vector.x)
     }
 }
+
+// Helper function to create a combined rotation and translation matrix
+func simd_make_float4x4(translation: SIMD3<Float>, rotation: (pitch: Float, yaw: Float, roll: Float)) -> matrix_float4x4 {
+    let rotationX = makeRotationMatrix(axis: SIMD3<Float>(1, 0, 0), angle: rotation.pitch)
+    let rotationY = makeRotationMatrix(axis: SIMD3<Float>(0, 1, 0), angle: rotation.yaw)
+    let rotationZ = makeRotationMatrix(axis: SIMD3<Float>(0, 0, 1), angle: rotation.roll)
+
+    let rotationMatrix = simd_mul(simd_mul(rotationX, rotationY), rotationZ)
+
+    var translationMatrix = matrix_identity_float4x4
+    translationMatrix.columns.3 = SIMD4<Float>(translation.x, translation.y, translation.z, 1)
+
+    return simd_mul(rotationMatrix, translationMatrix)
+}
+
+func createSim4Float4x4(_ array: [Float]) -> simd_float4x4? {
+    guard array.count == 16 else {
+        return nil
+    }
+    
+    // Create simd_float4 vectors for each row
+    let row0 = simd_float4(array[0], array[1], array[2], array[3])
+    let row1 = simd_float4(array[4], array[5], array[6], array[7])
+    let row2 = simd_float4(array[8], array[9], array[10], array[11])
+    let row3 = simd_float4(array[12], array[13], array[14], array[15])
+    
+    // Construct the simd_float4x4 matrix from the rows
+    let matrix = simd_float4x4(row0, row1, row2, row3)
+    return matrix
+}
+
+
+// Create a rotation matrix around an axis by an angle to avoid conflict
+func makeRotationMatrix(axis: SIMD3<Float>, angle: Float) -> matrix_float4x4 {
+    let c = cos(angle)
+    let s = sin(angle)
+
+    let column0 = SIMD4<Float>(c + pow(axis.x, 2) * (1 - c), axis.x * axis.y * (1 - c) - axis.z * s, axis.x * axis.z * (1 - c) + axis.y * s, 0)
+    let column1 = SIMD4<Float>(axis.y * axis.x * (1 - c) + axis.z * s, c + pow(axis.y, 2) * (1 - c), axis.y * axis.z * (1 - c) - axis.x * s, 0)
+    let column2 = SIMD4<Float>(axis.z * axis.x * (1 - c) - axis.y * s, axis.z * axis.y * (1 - c) + axis.x * s, c + pow(axis.z, 2) * (1 - c), 0)
+    let column3 = SIMD4<Float>(0, 0, 0, 1)
+
+    return matrix_float4x4(columns: (column0, column1, column2, column3))
+}
+
+func loadMDLAsset(_ data: Data) throws -> MDLAsset {
+    // Create a temporary URL to save the file
+    let temporaryDirectoryURL = FileManager.default.temporaryDirectory
+    let temporaryFileURL = temporaryDirectoryURL.appendingPathComponent("\(UUID().uuidString).usdz") // extension is important.  otherwise the overlay won't show
+    try data.write(to: temporaryFileURL, options: [.atomic])
+
+    print("Loading model asset of \(data.count) bytes from \(temporaryFileURL.absoluteString)")
+    let asset = MDLAsset(url: temporaryFileURL)
+    // delete the file cuz we don't need it
+    try FileManager.default.removeItem(at: temporaryFileURL)
+    return asset
+}
