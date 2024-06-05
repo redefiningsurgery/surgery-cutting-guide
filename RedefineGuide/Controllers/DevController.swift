@@ -19,15 +19,24 @@ class DevController: NSObject {
     /// The number of times the tracking has been updated.  Each time is a trip to the server
     private var trackingCount: Int = 0
     private var addedOverlayToScene: Bool = false
-    private var axisMaterial: SCNMaterial? = nil
+    private var axis1Material: SCNMaterial? = nil
+    private var axis1: SCNNode? = nil
+    private var axis2Material: SCNMaterial? = nil
+    private var axis2: SCNNode? = nil
+    private var cancellables: Set<AnyCancellable> = []
 
+    @MainActor
     override init() {
         model = SurgeryModel()
 
         super.init()
 
         model.delegate = self
-        
+        Publishers.Merge6(model.$axis1X, model.$axis1Y, model.$axis1Z, model.$axis2X, model.$axis2Y, model.$axis2Z)
+            .sink { [weak self] newValue in
+                self?.updateAxisPosition()
+            }
+            .store(in: &cancellables)
     }
         
     func pause() {
@@ -84,16 +93,31 @@ class DevController: NSObject {
         scene.rootNode.addChildNode(modelNode)
 
         let axis1 = createAxis()
-        guard let material = axis1.geometry?.firstMaterial else {
-            throw logger.logAndGetError("Could not get axis material")
-        }
-        self.axisMaterial = material
-        
-        axis1.position = SCNVector3(x: 0.0, y: 0, z: 0)
         axis1.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
+        self.axis1Material = axis1.geometry!.firstMaterial!
+        self.axis1 = axis1
         modelNode.addChildNode(axis1)
 
+        let axis2 = createAxis()
+        axis2.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
+        self.axis2Material = axis2.geometry!.firstMaterial!
+        self.axis2 = axis2
+        modelNode.addChildNode(axis2)
+
+        updateAxisPosition()
+
         addedOverlayToScene = true
+    }
+    
+    @MainActor
+    func updateAxisPosition() {
+        guard let axis1 = axis1, let axis2 = axis2 else {
+            return
+        }
+
+        axis1.position = SCNVector3(x: model.axis1X, y: model.axis1Y, z: model.axis1Z)
+        axis2.position = SCNVector3(x: model.axis2X, y: model.axis2Y, z: model.axis2Z)
+        logger.info("Axis position: \(axis1.position)")
     }
     
     func removeOverlayModel() {
@@ -122,7 +146,7 @@ extension DevController: ARSessionDelegate {
                     try? self.loadOverlay(frame: frame, scene: scene)
                 }
             }
-            if let axisMaterial = self.axisMaterial, let depthData = frame.smoothedSceneDepth?.depthMap {
+            if let axisMaterial = self.axis1Material, let depthData = frame.smoothedSceneDepth?.depthMap {
                 // these were always nil
 //                if let near = self.scene?.rootNode.camera?.zNear {
 //                    print("Near: \(near)")
