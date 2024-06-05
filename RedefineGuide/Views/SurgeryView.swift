@@ -160,7 +160,6 @@ struct SurgeryView: View {
 #Preview("Aligning") {
     let model = SurgeryModel()
     model.phase = .aligning
-    model.overlayBounds = CGRect(x: 100, y: 100, width: 100, height: 200)
     return SurgeryView(model: model)
 }
 
