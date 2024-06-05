@@ -22,6 +22,11 @@ class SurgeryModel: NSObject, ObservableObject {
     /// Only useful if errorExists is true.  Contains some details of the error message like: "Device is in low power mode.  Turn off low power mode to re-enable recording"
     @Published private(set) var errorMessage: String = ""
 
+    // Note: tracking needs to be restarted for these values to be reflected
+    @Published var axisRadius: Float = 0.002
+    @Published var axisLength: Float = 0.07
+
+    // Axes properties that can be measured by the adjustment form, which can be turned on in Settings
     @Published var axis1X: Float = 0.038
     @Published var axis1Y: Float = -0.002
     @Published var axis1Z: Float = 0.073

@@ -65,14 +65,14 @@ extension SCNNode {
     }
 }
 
-func createAxis() -> SCNNode {
+func createAxis(radius: Float, length: Float) -> SCNNode {
     // Create a cylinder that is thin and long
-    let cylinder = SCNCylinder(radius: 0.002, height: 0.1)
+    let cylinder = SCNCylinder(radius: CGFloat(radius), height: CGFloat(length))
 
     // Create a material and assign a color
     let material = SCNMaterial()
     material.diffuse.contents = UIColor.blue
-    material.transparency = 1 // parent may be translucent so make this solid
+    material.transparency = 1 // todo: I don't think this worked because parent node opacity
     cylinder.materials = [material]
 
     // Create a node for the cylinder

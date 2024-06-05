@@ -360,10 +360,10 @@ extension SurgeryController: SurgeryModelDelegate {
         }
         
         logger.info("Creating pin guide axises")
-        let axis1 = createAxis()
+        let axis1 = createAxis(radius: model.axisRadius, length: model.axisLength)
         self.axis1 = axis1
 
-        let axis2 = createAxis()
+        let axis2 = createAxis(radius: model.axisRadius, length: model.axisLength)
         self.axis2 = axis2
 
         updateAxisPosition()
