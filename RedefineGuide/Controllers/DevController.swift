@@ -75,8 +75,8 @@ class DevController: NSObject {
         modelNode.opacity = 0.8
         overlayNode = modelNode // Store the reference
         
-        modelNode.position = SCNVector3(x: -0.008548286, y: -0.19338854, z: -0.1764691)
-        modelNode.orientation = SCNVector4(x: -0.2683963, y: 0.09091471, z: 0.07285623, w: 0.9562373)
+        modelNode.position = SCNVector3(x: -0.015936472, y: -0.10953573, z: -0.13522644)
+        modelNode.orientation = SCNQuaternion(-0.26126942, -0.010307378, 0.047436498, 0.9640445)
         
         //getPositionInFrontOfCamera(cameraTransform: transform, distanceMeters: 0.2)
 
@@ -89,9 +89,9 @@ class DevController: NSObject {
         }
         self.axisMaterial = material
         
-//        axis1.position = SCNVector3(x: 0.0, y: 0, z: 0)
-//        axis1.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
-//        modelNode.addChildNode(axis1)
+        axis1.position = SCNVector3(x: 0.0, y: 0, z: 0)
+        axis1.eulerAngles = SCNVector3(x: Float.pi/2, y: 0, z: 0)
+        modelNode.addChildNode(axis1)
 
         addedOverlayToScene = true
     }

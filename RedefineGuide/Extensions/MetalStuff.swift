@@ -85,8 +85,8 @@ func createAxisMaterial() -> SCNMaterial {
     let material = SCNMaterial()
 //    material.isDoubleSided = true
 //    material.blendMode = .alpha
-//    material.transparency = 0.5
-    material.diffuse.contents = UIColor.red  // Color can be changed based on the axis color requirement
+    material.transparency = 1
+    material.diffuse.contents = UIColor.blue  // Color can be changed based on the axis color requirement
     // https://github.com/search?q=%22%23pragma+arguments%22+AND+%22shaderModifiers%22+AND+%22fragment%22+AND+%22sample%22&type=code
     // https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf
     // https://developer.apple.com/documentation/scenekit/scnshadermodifierentrypoint/1523791-surface
@@ -101,32 +101,32 @@ func createAxisMaterial() -> SCNMaterial {
     // some cool helpers: https://gist.github.com/Starmel/8dc58bad4065a180f022db57706e739a
     
     // todo: I don't think the screenPosition is right
-    material.shaderModifiers = [
-        .fragment: """
-        #pragma arguments
-        texture2d<float, access::sample> depthTexture;
-        float viewWidth;
-        float viewHeight;
-
-        #pragma body
-        constexpr sampler depthSampler(coord::pixel);
-
-        float4 model_space_position = scn_node.modelViewTransform * float4(_surface.position, 1);
-        float modelDepth = -model_space_position.z;
-        
-        //        vec4 screenPos = u_modelViewProjectionTransform * _geometry.position;
-        //        screen_coords = (screenPos.xy / screenPos.w + 1.0) * 0.5;
-        // diffuseTexcoord values are 0-1
-        float2 screenPosition = _surface.diffuseTexcoord * float2(viewWidth, viewHeight);  // Assuming viewWidth and viewHeight are passed as uniforms
-        float depthValue = depthTexture.sample(depthSampler, screenPosition).r; // Sample the depth texture using actual texture coordinates
-        
-        if (depthValue <= modelDepth) {
-            discard_fragment();
-        } else {
-            _output.color.a = 1.0;
-        }
-        """,
-    ]
+//    material.shaderModifiers = [
+//        .fragment: """
+//        #pragma arguments
+//        texture2d<float, access::sample> depthTexture;
+//        float viewWidth;
+//        float viewHeight;
+//
+//        #pragma body
+//        constexpr sampler depthSampler(coord::pixel);
+//
+//        float4 model_space_position = scn_node.modelViewTransform * float4(_surface.position, 1);
+//        float modelDepth = -model_space_position.z;
+//        
+//        //        vec4 screenPos = u_modelViewProjectionTransform * _geometry.position;
+//        //        screen_coords = (screenPos.xy / screenPos.w + 1.0) * 0.5;
+//        // diffuseTexcoord values are 0-1
+//        float2 screenPosition = _surface.diffuseTexcoord * float2(viewWidth, viewHeight);  // Assuming viewWidth and viewHeight are passed as uniforms
+//        float depthValue = depthTexture.sample(depthSampler, screenPosition).r; // Sample the depth texture using actual texture coordinates
+//        
+//        if (depthValue <= modelDepth) {
+//            discard_fragment();
+//        } else {
+//            _output.color.a = 1.0;
+//        }
+//        """,
+//    ]
     return material
 }
 
