@@ -16,32 +16,33 @@ class SurgeryModel: NSObject, ObservableObject {
     @Published @MainActor var phase: SurgeryPhase = .notStarted
     
     /// Indicates whether the recorder has encountered an error and it has not been dismissed by the user
-    @Published var errorVisible: Bool = false
+    @Published @MainActor var errorVisible: Bool = false
     /// Only useful if errorExists is true.  Contains a short message like "Error starting recording", which can be used as a title for alerts
-    @Published private(set) var errorTitle: String = ""
+    @Published @MainActor private(set) var errorTitle: String = ""
     /// Only useful if errorExists is true.  Contains some details of the error message like: "Device is in low power mode.  Turn off low power mode to re-enable recording"
-    @Published private(set) var errorMessage: String = ""
+    @Published @MainActor private(set) var errorMessage: String = ""
 
     // Note: tracking needs to be restarted for these values to be reflected
-    @Published var axisRadius: Float = 0.002
-    @Published var axisLength: Float = 0.07
+    @Published @MainActor var axisRadius: Float = 0.001
+    @Published @MainActor var axisLength: Float = 0.07
 
     // Axes properties that can be measured by the adjustment form, which can be turned on in Settings
-    @Published var axis1X: Float = 0.038
-    @Published var axis1Y: Float = -0.002
-    @Published var axis1Z: Float = 0.073
+    @Published @MainActor var axis1X: Float = 0.038
+    @Published @MainActor var axis1Y: Float = -0.002
+    @Published @MainActor var axis1Z: Float = 0.073
 
-    @Published var axisXAngle: Float = 90
-    @Published var axisYAngle: Float = 13
-    @Published var axisZAngle: Float = 0
+    @Published @MainActor var axisXAngle: Float = 90
+    @Published @MainActor var axisYAngle: Float = 13
+    @Published @MainActor var axisZAngle: Float = 0
 
-    @Published var axis2X: Float = 0.01
-    @Published var axis2Y: Float = -0.002
-    @Published var axis2Z: Float = 0.079
+    @Published @MainActor var axis2X: Float = 0.01
+    @Published @MainActor var axis2Y: Float = -0.002
+    @Published @MainActor var axis2Z: Float = 0.079
 
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")
 
+    @MainActor
     func getARView() -> ARSCNView {
         guard let delegate = delegate else {
             logger.warning("Cannot get ARView because delegate is nil")
@@ -54,7 +55,7 @@ class SurgeryModel: NSObject, ObservableObject {
             return ARSCNView()
         }
     }
-    
+
     func resetWorldOrigin() {
         guard let delegate = delegate else {
             logger.warning("resetWorldOrigin did nothing because delegate is nil")
@@ -66,7 +67,7 @@ class SurgeryModel: NSObject, ObservableObject {
             logger.error("Error resetWorldOrigin: \(error.localizedDescription)")
         }
     }
-    
+
     @MainActor
     func setError(errorTitle: String, errorMessage: String) {
         self.errorVisible = true
@@ -90,7 +91,7 @@ class SurgeryModel: NSObject, ObservableObject {
             }
         }
     }
-    
+
     @MainActor
     func stopSession() {
         guard let delegate = delegate else {
@@ -106,7 +107,7 @@ class SurgeryModel: NSObject, ObservableObject {
             }
         }
     }
-    
+
     @MainActor
     func startTracking() {
         guard let delegate = delegate else {
