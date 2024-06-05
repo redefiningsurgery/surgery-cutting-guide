@@ -49,7 +49,7 @@ class SurgeryController: NSObject {
         logger.info("Started AR session")
     }
 
-    func loadOverlay(_ data: Data) throws {
+    func loadOverlay(_ data: Data) throws -> SCNNode {
         let modelAsset = try loadMDLAsset(data)
         modelAsset.loadTextures()
         let modelObject = modelAsset.object(at: 0)
@@ -68,15 +68,7 @@ class SurgeryController: NSObject {
                 depth <= maxBoundingBoxSideOfOverlayInMeters && depth >= minBoundingBoxSideOfOverlayInMeters else {
             throw logger.logAndGetError("Overlay CAD model was too big.  It needs adjusted.  Dimensions in meters: width=\(width), height=\(height), depth=\(depth)")
         }
-        
-        // temporary hack to get the model sized properly
-        //modelNode.scaleToWidth(centimeters: 20)
-        // make it translucent
-        modelNode.opacity = 0.5
-        // rotate the model up and tilt it slightly.  remember, the femur comes from the upper leg, so the base points up
-        modelNode.rotate(x: 0, y: 0, z: 0)
-
-        overlayNode = modelNode // Store the reference
+        return modelNode
     }
     
     func removeOverlayModel() {
@@ -209,7 +201,7 @@ extension SurgeryController: SurgeryModelDelegate {
             throw logger.logAndGetError("No session ID passed from server")
         }
         
-        try loadOverlay(response.model)
+        self.overlayNode = try loadOverlay(response.model)
         sessionId = response.sessionID
         await MainActor.run {
             model.phase = .aligning
@@ -343,7 +335,7 @@ extension SurgeryController: SurgeryModelDelegate {
             logger.info("Fixing overlay at position \(position) and orientation \(orientation)")
             overlayNode.position = position
             overlayNode.orientation = orientation
-            overlayNode.opacity = 0.8 // show more of it
+            overlayNode.opacity = 0.8
 
 //            if axis.parent == nil {
 //                axis.position = SCNVector3(x: 0.06, y: 0, z: 0)
