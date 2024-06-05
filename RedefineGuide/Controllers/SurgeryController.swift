@@ -23,12 +23,24 @@ class SurgeryController: NSObject {
     private var trackingCount: Int = 0
     private var cancellables: Set<AnyCancellable> = []
 
+    @MainActor
     override init() {
         model = SurgeryModel()
 
         super.init()
 
         model.delegate = self
+
+        Publishers.Merge6(model.$axis1X, model.$axis1Y, model.$axis1Z, model.$axis2X, model.$axis2Y, model.$axis2Z)
+            .sink { [weak self] newValue in
+                self?.updateAxisPosition()
+            }
+            .store(in: &cancellables)
+        Publishers.Merge3(model.$axisXAngle, model.$axisYAngle, model.$axisZAngle)
+            .sink { [weak self] newValue in
+                self?.updateAxisPosition()
+            }
+            .store(in: &cancellables)
     }
     
     func pause() {
@@ -78,6 +90,8 @@ class SurgeryController: NSObject {
             logger.info("Removed overlay")
             overlayNode.removeFromParentNode()
             self.overlayNode = nil
+            self.axis1 = nil
+            self.axis2 = nil
         }
     }
 }
@@ -347,16 +361,29 @@ extension SurgeryController: SurgeryModelDelegate {
         
         logger.info("Creating pin guide axises")
         let axis1 = createAxis()
-        axis1.eulerAngles = model.axis1Angles
-        axis1.position = SCNVector3(x: model.axis1X, y: model.axis1Y, z: model.axis1Z)
         self.axis1 = axis1
-        overlayNode.addChildNode(axis1)
 
         let axis2 = createAxis()
-        axis2.eulerAngles = model.axis2Angles
-        axis2.position = SCNVector3(x: model.axis2X, y: model.axis2Y, z: model.axis2Z)
         self.axis2 = axis2
+
+        updateAxisPosition()
+        overlayNode.addChildNode(axis1)
         overlayNode.addChildNode(axis2)
+    }
+    
+    @MainActor
+    func updateAxisPosition() {
+        guard let axis1 = axis1, let axis2 = axis2 else {
+            return
+        }
+        
+        axis1.rotate(x: CGFloat(model.axisXAngle), y: CGFloat(model.axisYAngle), z: CGFloat(model.axisZAngle))
+        axis1.position = SCNVector3(x: model.axis1X, y: model.axis1Y, z: model.axis1Z)
+        logger.info("Axis 1 position: \(axis1.position), angles (\(model.axisXAngle),\(model.axisYAngle),\(model.axisZAngle)): \(axis1.eulerAngles)")
+
+        axis2.rotate(x: CGFloat(model.axisXAngle), y: CGFloat(model.axisYAngle), z: CGFloat(model.axisZAngle))
+        axis2.position = SCNVector3(x: model.axis2X, y: model.axis2Y, z: model.axis2Z)
+        logger.info("Axis 2 position: \(axis2.position), angles (\(model.axisXAngle),\(model.axisYAngle),\(model.axisZAngle)): \(axis2.eulerAngles)")
     }
 }
 

@@ -94,4 +94,5 @@ iOSInjectionProject/
 
 # This was creating problems when people had slightly different xcode versions
 RedefineGuide.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
-RedefineGuide/Settings.bundle/Root~.plist
+*~.plist
+*~.swift

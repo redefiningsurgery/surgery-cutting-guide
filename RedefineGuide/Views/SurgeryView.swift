@@ -119,6 +119,11 @@ struct SurgeryView: View {
             VStack {
                 ARViewContainer(model: model)
             }
+            .overlay(alignment: .top) {
+                if Settings.shared.showAxisEditor {
+                    AxisAdjustForm(model: model)
+                }
+            }
             .overlay(alignment: .bottom) {
                 Button(action: {
                     model.stopSession()

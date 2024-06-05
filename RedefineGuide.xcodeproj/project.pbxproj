@@ -31,6 +31,7 @@
 		973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF382BBFB3670083CBED /* SurgeryController.swift */; };
 		973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3A2BC433EE0083CBED /* SurgeryView.swift */; };
 		973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEF3E2BC456A20083CBED /* SurgeryModel.swift */; };
+		974CCD1F2C10EF7100F0BEFE /* AxisAdjustForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 974CCD1E2C10EF7100F0BEFE /* AxisAdjustForm.swift */; };
 		97648E7A2C08DA9B00638226 /* ConfirmButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97648E792C08DA9B00638226 /* ConfirmButton.swift */; };
 		977429EE2BC70D9C0069F4BA /* SceneKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */; };
 		97936C8F2BD6DDFF005930F4 /* DepthMapSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */; };
@@ -86,6 +87,7 @@
 		973AEF382BBFB3670083CBED /* SurgeryController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryController.swift; sourceTree = "<group>"; };
 		973AEF3A2BC433EE0083CBED /* SurgeryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryView.swift; sourceTree = "<group>"; };
 		973AEF3E2BC456A20083CBED /* SurgeryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurgeryModel.swift; sourceTree = "<group>"; };
+		974CCD1E2C10EF7100F0BEFE /* AxisAdjustForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AxisAdjustForm.swift; sourceTree = "<group>"; };
 		97648E792C08DA9B00638226 /* ConfirmButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmButton.swift; sourceTree = "<group>"; };
 		977429ED2BC70D9C0069F4BA /* SceneKitExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneKitExtensions.swift; sourceTree = "<group>"; };
 		97936C8E2BD6DDFF005930F4 /* DepthMapSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthMapSaver.swift; sourceTree = "<group>"; };
@@ -230,6 +232,7 @@
 				97648E792C08DA9B00638226 /* ConfirmButton.swift */,
 				973AEEEE2BBF3FF70083CBED /* RootView.swift */,
 				973AEF3A2BC433EE0083CBED /* SurgeryView.swift */,
+				974CCD1E2C10EF7100F0BEFE /* AxisAdjustForm.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -413,6 +416,7 @@
 				97648E7A2C08DA9B00638226 /* ConfirmButton.swift in Sources */,
 				97C705132BFE659A00194835 /* Settings.swift in Sources */,
 				973AEF202BBF427D0083CBED /* AsyncButton.swift in Sources */,
+				974CCD1F2C10EF7100F0BEFE /* AxisAdjustForm.swift in Sources */,
 				973AEF2C2BBFAA080083CBED /* ThreadSafeDictionary.swift in Sources */,
 				973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */,
 				973AEF332BBFAC3F0083CBED /* AppInitializer.swift in Sources */,
