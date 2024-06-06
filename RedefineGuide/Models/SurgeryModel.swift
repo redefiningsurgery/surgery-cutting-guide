@@ -29,7 +29,7 @@ class SurgeryModel: NSObject, ObservableObject {
     // Axes properties that can be measured by the adjustment form, which can be turned on in Settings
     @Published @MainActor var axis1X: Float = 0.038
     @Published @MainActor var axis1Y: Float = -0.002
-    @Published @MainActor var axis1Z: Float = 0.073
+    @Published @MainActor var axis1Z: Float = 0.060
 
     @Published @MainActor var axisXAngle: Float = 90
     @Published @MainActor var axisYAngle: Float = 13
@@ -37,7 +37,7 @@ class SurgeryModel: NSObject, ObservableObject {
 
     @Published @MainActor var axis2X: Float = 0.01
     @Published @MainActor var axis2Y: Float = -0.002
-    @Published @MainActor var axis2Z: Float = 0.079
+    @Published @MainActor var axis2Z: Float = 0.066
 
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")

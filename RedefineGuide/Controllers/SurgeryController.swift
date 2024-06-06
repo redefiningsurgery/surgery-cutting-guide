@@ -309,7 +309,10 @@ extension SurgeryController: SurgeryModelDelegate {
         #if DEBUG
             try saveTrackingRequest(request)
         #endif
-        
+
+        guard !Task.isCancelled else {
+            return
+        }
         let response = try await executeRequest(of: Requests_GetPositionOutput.self, method: "POST", path: "sessions/\(sessionId)", body: requestData)
         guard !Task.isCancelled else {
             return
