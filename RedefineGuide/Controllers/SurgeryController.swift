@@ -375,4 +375,11 @@ extension SurgeryController: SurgeryModelDelegate {
         axis2.position = SCNVector3(x: model.axis2X, y: model.axis2Y, z: model.axis2Z)
         logger.info("Axis 2 position: \(axis2.position), angles (\(model.axisXAngle),\(model.axisYAngle),\(model.axisZAngle)): \(axis2.eulerAngles)")
     }
+    
+    func exportScene() async throws {
+        guard let scene = self.scene else {
+            throw logger.logAndGetError("Could not get scene to export")
+        }
+        
+    }
 }

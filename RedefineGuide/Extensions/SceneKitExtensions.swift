@@ -65,6 +65,18 @@ extension SCNNode {
     }
 }
 
+func exportScene(scene: SCNScene) throws {
+    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+    let fileName = dateFormatter.string(from: Date())
+    let fileNameExt = "\(fileName).scn"
+    let url = documentsDirectory.appendingPathComponent(fileNameExt)
+    scene.write(to: url, delegate: nil, progressHandler: { (totalProgress, error, stop) in
+        print(totalProgress)
+    })
+}
+
 func createAxis(radius: Float, length: Float) -> SCNNode {
     // Create a cylinder that is thin and long
     let cylinder = SCNCylinder(radius: CGFloat(radius), height: CGFloat(length))

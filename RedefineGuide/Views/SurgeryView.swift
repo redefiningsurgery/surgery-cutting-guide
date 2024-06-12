@@ -3,6 +3,8 @@ import SwiftUI
 /// The live view of surgery.
 struct SurgeryView: View {
     @ObservedObject var model: SurgeryModel
+    
+    @ObservedObject var settings: Settings = Settings.shared
 
     var body: some View {
         if model.phase == .notStarted {
@@ -120,7 +122,7 @@ struct SurgeryView: View {
                 ARViewContainer(model: model)
             }
             .overlay(alignment: .top) {
-                if Settings.shared.showAxisEditor {
+                if settings.enableDevMode {
                     AxisAdjustForm(model: model)
                 }
             }
