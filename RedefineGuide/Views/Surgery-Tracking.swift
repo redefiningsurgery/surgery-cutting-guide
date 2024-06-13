@@ -5,14 +5,14 @@ struct SurgeryTracking: View {
     
     var enableDevMode: Bool = false
     
-    @State var isDevOverlayVisible = false
+    @State private var isDevOverlayVisible = false
 
     var body: some View {
         VStack {
             ARViewContainer(model: model)
         }
         .overlay(alignment: .top) {
-            if isDevOverlayVisible {
+            if enableDevMode && isDevOverlayVisible {
                 AxisAdjustForm(model: model)
             }
         }

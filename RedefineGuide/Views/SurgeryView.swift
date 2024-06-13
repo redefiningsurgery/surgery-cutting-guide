@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// The live view of surgery.
 struct SurgeryView: View {
     @ObservedObject var model: SurgeryModel
     
@@ -13,13 +12,41 @@ struct SurgeryView: View {
             SurgeryDone(model: model)
         } else if model.phase == .starting {
             SurgeryStarting(model: model)
+                .showErrors(model)
         } else if model.phase == .aligning {
             SurgeryAligning(model: model)
+                .showErrors(model)
         } else if model.phase == .initializingTracking {
             SurgeryInitializingTracking(model: model)
+                .showErrors(model)
         } else {
-            SurgeryTracking(model: model, isDevOverlayVisible: settings.enableDevMode)
+            SurgeryTracking(model: model, enableDevMode: settings.enableDevMode)
+                .showErrors(model)
         }
+    }
+}
+
+struct ShowErrorsModifier: ViewModifier {
+    @ObservedObject var model: SurgeryModel
+
+    func body(content: Content) -> some View {
+        content
+            .alert(model.errorTitle, isPresented: $model.errorVisible) {
+                Button(role: .cancel) {
+                    model.phase = .notStarted
+                } label: {
+                    Text("OK")
+                }
+            } message: {
+                Text(model.errorMessage)
+            }
+    }
+}
+
+extension View {
+    // makes it easy to show errors from the model
+    func showErrors(_ model: SurgeryModel) -> some View {
+        modifier(ShowErrorsModifier(model: model))
     }
 }
 

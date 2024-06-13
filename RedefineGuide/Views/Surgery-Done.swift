@@ -6,15 +6,21 @@ struct SurgeryDone: View {
     var body: some View {
         Centered {
             VStack {
-                Spacer()
-                Text("Done!")
+                Text("Loading Patient Data")
                     .font(.title)
-                Spacer()
-                Button("Start new Pin Placement") {
-                    model.startSession()
-                }
-                Spacer()
+                ProgressView()
+                    .scaleEffect(2)
+                    .padding()
             }
+        }
+        .alert(model.errorTitle, isPresented: $model.errorVisible) {
+            Button(role: .cancel) {
+                model.phase = .notStarted
+            } label: {
+                Text("OK")
+            }
+        } message: {
+            Text(model.errorMessage)
         }
     }
 }
