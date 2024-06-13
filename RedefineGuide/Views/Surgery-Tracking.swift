@@ -5,41 +5,46 @@ struct SurgeryTracking: View {
     
     var enableDevMode: Bool = false
     
-    @State private var isDevOverlayVisible = false
-
+    @State private var isDevModeActive = false
+    
     var body: some View {
         VStack {
             ARViewContainer(model: model)
         }
         .overlay(alignment: .top) {
-            if enableDevMode && isDevOverlayVisible {
+            if enableDevMode && isDevModeActive {
                 AxisAdjustForm(model: model)
             }
         }
         .overlay(alignment: .bottom) {
-            Button(action: {
-                model.stopSession()
-            }, label: {
-                Text("Stop")
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-                    .background(
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(.red))
-            })
+            HStack {
+                Button(action: {
+                    model.stopSession()
+                }, label: {
+                    Text("Stop")
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                        .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(.red))
+                })
+            }
         }
         .overlay(alignment: .bottomTrailing) {
             if enableDevMode {
                 HStack {
-                    if isDevOverlayVisible {
-                        Button("Export Scene") {
-                            model.exportScene()
-                        }
+                    if isDevModeActive {
+                        AsyncButton(showSuccessIndicator: true,
+                            action: {
+                                await model.exportScene()
+                            },
+                            label: {
+                                Text("Export Scene")
+                            })
                     }
-
                     Button(action: {
-                        isDevOverlayVisible.toggle()
+                        isDevModeActive.toggle()
                     }) {
                         Image(systemName: "gearshape")
                             .imageScale(.large)
@@ -60,7 +65,12 @@ struct SurgeryTracking: View {
     }
 }
 
-#Preview {
+#Preview("Default") {
+    let model = SurgeryModel()
+    return SurgeryTracking(model: model)
+}
+
+#Preview("Dev mode") {
     let model = SurgeryModel()
     return SurgeryTracking(model: model, enableDevMode: true)
 }

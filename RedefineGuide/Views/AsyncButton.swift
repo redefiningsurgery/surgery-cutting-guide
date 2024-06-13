@@ -16,18 +16,34 @@ struct AsyncButton<Label: View>: View {
     /// The action is run in a task.  This is the priority of that task.  Note this will be inherited by child tasks.
     var taskPriority: TaskPriority = .userInitiated
 
+    var showSuccessIndicator: Bool = false
+    
+    var successSystemImageName: String = "checkmark.circle.fill"
+
+    var successIndicatorSeconds = 2.0
+    
     var action: () async -> Void
     @ViewBuilder var label: () -> Label
-
+    
     @State private var isRunning = false
     /// Becomes true when enough time has passed since the task started that the button should be disabled for visual feedback to the user
     @State private var delayOccurred = false
-
+    /// Indicates whether a success completion animation should be shown
+    @State private var showSuccess = false
+    /// Number of times the button has been pressed
+    @State private var count = 0
+    
     var body: some View {
         Button(
             action: {
                 guard !isRunning else {
                     return
+                }
+                count += 1
+
+                // Button was pressed quickly after it succeeded.  Immediately hide the indicator
+                if showSuccess {
+                    showSuccess = false
                 }
                 isRunning = true
             
@@ -45,21 +61,43 @@ struct AsyncButton<Label: View>: View {
                     await action()
                     delayTask?.cancel()
 
+                    withAnimation {
+                        showSuccess = true
+                    }
                     delayOccurred = false
+                    
+                    // Reset success state after animation completes
+                    Task.detached {
+                        let currCount = count
+                        try await Task.sleep(nanoseconds: getNanoseconds(seconds: successIndicatorSeconds))
+                        withAnimation {
+                            // if it was pressed during this task, then don't do anything
+                            if currCount == self.count {
+                                showSuccess = false
+                            }
+                        }
+                    }
+                    
                     isRunning = false
                 }
             },
             label: {
-                if showProgressViewDuringLoading {
-                    ZStack {
+                ZStack {
+                    if showProgressViewDuringLoading {
                         label().opacity(delayOccurred ? opacityDuringLoading : 1)
                         if delayOccurred {
                             ProgressView()
                                 .background(Color.clear) // You can set a background color to make it more visible during debugging
                         }
+                    } else {
+                        label().opacity(delayOccurred ? opacityDuringLoading : 1)
                     }
-                } else {
-                    label().opacity(delayOccurred ? opacityDuringLoading : 1)
+                    if showSuccess {
+                        Image(systemName: successSystemImageName)
+                            .scaledToFit()
+                            .foregroundColor(.green)
+                            .transition(.scale.combined(with: .opacity))
+                    }
                 }
             }
         )
@@ -80,8 +118,21 @@ struct AsyncButton<Label: View>: View {
     AsyncButton(showProgressViewDuringLoading: true, opacityDuringLoading: 0, action: {
         try? await Task.sleep(nanoseconds: nanosecondsPerSecond)
    }, label: {
-       Image(systemName: "hand.thumbsup.fill")
+       Text("Click me please")
    })
+}
+
+#Preview("spinner with success indicator") {
+    HStack {
+        AsyncButton(showProgressViewDuringLoading: true, opacityDuringLoading: 0, showSuccessIndicator: true, successIndicatorSeconds: 4, action: {
+            try? await Task.sleep(nanoseconds: nanosecondsPerSecond)
+        }, label: {
+            Text("Click me please")
+        })
+    }.background(
+        RoundedRectangle(cornerRadius: 4)
+            .fill(.red)
+    )
 }
 
 #Preview("immediate loading state") {

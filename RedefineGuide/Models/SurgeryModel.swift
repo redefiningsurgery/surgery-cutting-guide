@@ -125,7 +125,7 @@ class SurgeryModel: NSObject, ObservableObject {
     }
     
     @MainActor
-    func exportScene() {
+    func exportScene() async {
         guard let delegate = delegate else {
             logger.warning("exportScene did nothing because delegate is nil")
             return
