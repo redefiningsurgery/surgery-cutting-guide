@@ -5,13 +5,24 @@ struct SurgeryDone: View {
     
     var body: some View {
         Centered {
-            VStack {
-                Text("Loading Patient Data")
-                    .font(.title)
-                ProgressView()
-                    .scaleEffect(2)
-                    .padding()
+            Centered {
+                VStack {
+                    Spacer()
+                    Text("Done!")
+                        .font(.title)
+                    Spacer()
+                    Button("Start new Pin Placement") {
+                        model.startSession()
+                    }
+                    Spacer()
+                }
             }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            NavigationLink(destination: SettingsForm()) {
+                Image(systemName: "gearshape")
+                    .imageScale(.large)
+            }.padding()
         }
         .alert(model.errorTitle, isPresented: $model.errorVisible) {
             Button(role: .cancel) {

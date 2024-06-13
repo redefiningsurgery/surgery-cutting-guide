@@ -16,6 +16,12 @@ struct SurgeryNotStarted: View {
                 Spacer()
             }
         }
+        .overlay(alignment: .bottomTrailing) {
+            NavigationLink(destination: SettingsForm()) {
+                Image(systemName: "gearshape")
+                    .imageScale(.large)
+            }.padding()
+        }
     }
 }
 

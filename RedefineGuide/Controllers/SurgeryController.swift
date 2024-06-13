@@ -306,9 +306,9 @@ extension SurgeryController: SurgeryModelDelegate {
         let requestData = try request.serializedData()
         trackingCount += 1
 
-        #if DEBUG
+        if Settings.shared.saveRequests {
             try saveTrackingRequest(request)
-        #endif
+        }
 
         guard !Task.isCancelled else {
             return

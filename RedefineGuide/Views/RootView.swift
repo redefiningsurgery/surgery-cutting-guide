@@ -15,7 +15,9 @@ struct RootView: View {
             }
         case .initialized:
             let controller = SurgeryController()
-            SurgeryView(model: controller.model)
+            NavigationView {
+                SurgeryView(model: controller.model)
+            }
         }
     }
 }

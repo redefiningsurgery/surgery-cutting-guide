@@ -15,6 +15,7 @@
 		9720B7072C1B3C1E00A672C7 /* Surgery-Aligning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B7062C1B3C1E00A672C7 /* Surgery-Aligning.swift */; };
 		9720B7092C1B3C7700A672C7 /* Surgery-Starting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B7082C1B3C7700A672C7 /* Surgery-Starting.swift */; };
 		9720B70B2C1B3CB500A672C7 /* Surgery-Done.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B70A2C1B3CB500A672C7 /* Surgery-Done.swift */; };
+		9720B70D2C1B5DB100A672C7 /* SettingsForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B70C2C1B5DB100A672C7 /* SettingsForm.swift */; };
 		973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */; };
 		973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEE2BBF3FF70083CBED /* RootView.swift */; };
 		973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 973AEEF02BBF3FF90083CBED /* Assets.xcassets */; };
@@ -73,6 +74,7 @@
 		9720B7062C1B3C1E00A672C7 /* Surgery-Aligning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Surgery-Aligning.swift"; sourceTree = "<group>"; };
 		9720B7082C1B3C7700A672C7 /* Surgery-Starting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Surgery-Starting.swift"; sourceTree = "<group>"; };
 		9720B70A2C1B3CB500A672C7 /* Surgery-Done.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Surgery-Done.swift"; sourceTree = "<group>"; };
+		9720B70C2C1B5DB100A672C7 /* SettingsForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsForm.swift; sourceTree = "<group>"; };
 		973AEEE92BBF3FF70083CBED /* RedefineGuide.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RedefineGuide.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedefineGuideApp.swift; sourceTree = "<group>"; };
 		973AEEEE2BBF3FF70083CBED /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -251,6 +253,7 @@
 				9720B7062C1B3C1E00A672C7 /* Surgery-Aligning.swift */,
 				9720B7082C1B3C7700A672C7 /* Surgery-Starting.swift */,
 				9720B70A2C1B3CB500A672C7 /* Surgery-Done.swift */,
+				9720B70C2C1B5DB100A672C7 /* SettingsForm.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -441,6 +444,7 @@
 				9720B7012C1A44F100A672C7 /* Surgery-NotStarted.swift in Sources */,
 				973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */,
 				973AEF332BBFAC3F0083CBED /* AppInitializer.swift in Sources */,
+				9720B70D2C1B5DB100A672C7 /* SettingsForm.swift in Sources */,
 				973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */,
 				977429EE2BC70D9C0069F4BA /* SceneKitExtensions.swift in Sources */,
 				973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */,
