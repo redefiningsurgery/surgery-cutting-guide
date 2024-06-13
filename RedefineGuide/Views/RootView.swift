@@ -18,6 +18,7 @@ struct RootView: View {
             NavigationView {
                 SurgeryView(model: controller.model)
             }
+            .navigationViewStyle(StackNavigationViewStyle())
         }
     }
 }
