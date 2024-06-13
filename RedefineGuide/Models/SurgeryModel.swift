@@ -39,7 +39,7 @@ class SurgeryModel: NSObject, ObservableObject {
     @Published @MainActor var axis2Y: Float = -0.002
     @Published @MainActor var axis2Z: Float = 0.066
 
-    var delegate: SurgeryModelDelegate? = nil
+    weak var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")
 
     @MainActor
@@ -123,6 +123,22 @@ class SurgeryModel: NSObject, ObservableObject {
             }
         }
     }
+    
+    @MainActor
+    func exportScene() {
+        guard let delegate = delegate else {
+            logger.warning("exportScene did nothing because delegate is nil")
+            return
+        }
+        Task(priority: .high) {
+            do {
+                try await delegate.exportScene()
+            } catch {
+                logger.error("exportScene: \(error.localizedDescription)")
+                setError(errorTitle: "Could not export scene", errorMessage: error.localizedDescription)
+            }
+        }
+    }
 }
 
 
@@ -132,4 +148,5 @@ protocol SurgeryModelDelegate: AnyObject {
     func startTracking() async throws
     func startSession() async throws
     func stopSession() async throws
+    func exportScene() async throws
 }

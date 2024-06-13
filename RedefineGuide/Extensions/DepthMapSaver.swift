@@ -21,38 +21,36 @@ func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Requests_G
 /// Saves the request data to the phone so it can be re-sent and analyzed later.  Note that the server might also make a copy, but this is good to have.
 /// It saves the raw request data, but also saves files in the format that FoundationPose's YcbineoatReader expects
 func saveTrackingRequest(_ serverRequest: Requests_GetPositionInput) throws {
-    do {
-        // Get the documents directory path
-        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let directory = documentsDirectory.appendingPathComponent(serverRequest.sessionID, conformingTo: .directory)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
-        
-        let requestDataPath = directory.appendingPathComponent("latest_track_request.bin", conformingTo: .fileURL)
-        let requestData = try serverRequest.serializedData()
-        try requestData.write(to: requestDataPath)
-        
-        try saveToSubdirectory(directory: directory, subdirectory: "rgb", fileName: "0.png", data: serverRequest.rgbImage)
-        try saveToSubdirectory(directory: directory, subdirectory: "depth", fileName: "0.png", data: serverRequest.depthMap)
+    // Get the documents directory path
+    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    let directory = documentsDirectory.appendingPathComponent(serverRequest.sessionID, conformingTo: .directory)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
+    
+    let requestDataPath = directory.appendingPathComponent("latest_track_request.bin", conformingTo: .fileURL)
+    let requestData = try serverRequest.serializedData()
+    try requestData.write(to: requestDataPath)
+    
+    try saveToSubdirectory(directory: directory, subdirectory: "rgb", fileName: "0.png", data: serverRequest.rgbImage)
+    try saveToSubdirectory(directory: directory, subdirectory: "depth", fileName: "0.png", data: serverRequest.depthMap)
 
-        // save intrinsics in the format that FoundationPose likes
-        let intrinsics = serverRequest.intrinsics
-        let intrinsicsStr = 
-            "\(intrinsics[0]) \(intrinsics[1]) \(intrinsics[2])\n" +
-            "\(intrinsics[3]) \(intrinsics[4]) \(intrinsics[5])\n" +
-            "\(intrinsics[6]) \(intrinsics[7]) \(intrinsics[8])"
-        let intrinsicsPath = directory.appendingPathComponent("cam_K.txt", conformingTo: .fileURL)
-        try intrinsicsStr.write(to: intrinsicsPath, atomically: true, encoding: .utf8)
-        
-        let transform = serverRequest.transform
-        let transformStr =
-            "\(transform[0]) \(transform[1]) \(transform[2]) \(transform[3])\n" +
-            "\(transform[4]) \(transform[5]) \(transform[6]) \(transform[7])\n" +
-            "\(transform[8]) \(transform[9]) \(transform[10]) \(transform[11])\n" +
-            "\(transform[12]) \(transform[13]) \(transform[14]) \(transform[15])"
-        let transformDir = try createSubdirectory(directory: directory, subdirectory: "ob_in_cam")
-        let transformPath = transformDir.appendingPathComponent("0.txt", conformingTo: .fileURL)
-        try transformStr.write(to: transformPath, atomically: true, encoding: .utf8)
-    }
+    // save intrinsics in the format that FoundationPose likes
+    let intrinsics = serverRequest.intrinsics
+    let intrinsicsStr =
+        "\(intrinsics[0]) \(intrinsics[1]) \(intrinsics[2])\n" +
+        "\(intrinsics[3]) \(intrinsics[4]) \(intrinsics[5])\n" +
+        "\(intrinsics[6]) \(intrinsics[7]) \(intrinsics[8])"
+    let intrinsicsPath = directory.appendingPathComponent("cam_K.txt", conformingTo: .fileURL)
+    try intrinsicsStr.write(to: intrinsicsPath, atomically: true, encoding: .utf8)
+    
+    let transform = serverRequest.transform
+    let transformStr =
+        "\(transform[0]) \(transform[1]) \(transform[2]) \(transform[3])\n" +
+        "\(transform[4]) \(transform[5]) \(transform[6]) \(transform[7])\n" +
+        "\(transform[8]) \(transform[9]) \(transform[10]) \(transform[11])\n" +
+        "\(transform[12]) \(transform[13]) \(transform[14]) \(transform[15])"
+    let transformDir = try createSubdirectory(directory: directory, subdirectory: "ob_in_cam")
+    let transformPath = transformDir.appendingPathComponent("0.txt", conformingTo: .fileURL)
+    try transformStr.write(to: transformPath, atomically: true, encoding: .utf8)
 }
 
 func createSubdirectory(directory: URL, subdirectory: String) throws -> URL {

@@ -65,6 +65,31 @@ extension SCNNode {
     }
 }
 
+extension SCNScene {
+    
+    /// Saves the current scene in the file system so it can be imported into a computer
+    func export() async throws {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let fileName = dateFormatter.string(from: Date())
+        let fileNameExt = "\(fileName).scn"
+        let url = documentsDirectory.appendingPathComponent(fileNameExt)
+
+        try await withCheckedThrowingContinuation { [weak self] continuation in
+            self?.write(to: url, delegate: nil, progressHandler: { (totalProgress, error, stop) in
+                if totalProgress == 1.0 && error == nil {
+                    continuation.resume()
+                }
+                if let error = error {
+                    continuation.resume(throwing: error)
+                }
+            })
+        }
+    }
+    
+}
+
 func createAxis(radius: Float, length: Float) -> SCNNode {
     // Create a cylinder that is thin and long
     let cylinder = SCNCylinder(radius: CGFloat(radius), height: CGFloat(length))

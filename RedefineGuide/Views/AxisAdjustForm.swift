@@ -1,12 +1,6 @@
-//
-//  AxisAdjustForm.swift
-//  RedefineGuide
-//
-//  Created by Stephen Potter on 6/5/24.
-//
-
 import SwiftUI
 
+/// Allows adjustment of the pin axes on the screen
 struct AxisAdjustForm: View {
     @ObservedObject var model: SurgeryModel
 

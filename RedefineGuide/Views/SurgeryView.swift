@@ -1,142 +1,36 @@
 import SwiftUI
 
-/// The live view of surgery.
 struct SurgeryView: View {
     @ObservedObject var model: SurgeryModel
+    
+    @ObservedObject var settings: Settings = Settings.shared
 
     var body: some View {
         if model.phase == .notStarted {
-            Centered {
-                VStack {
-                    Spacer()
-                    Text("Welcome to Redefine Surgery Guide")
-                        .font(.title)
-                    Spacer()
-                    Button("Start Pin Placement") {
-                        model.startSession()
-                    }
-                    Spacer()
-                }
-            }
+            SurgeryNotStarted(model: model)
         } else if model.phase == .done {
-            Centered {
-                VStack {
-                    Spacer()
-                    Text("Done!")
-                        .font(.title)
-                    Spacer()
-                    Button("Start new Pin Placement") {
-                        model.startSession()
-                    }
-                    Spacer()
-                }
-            }
+            SurgeryDone(model: model)
         } else if model.phase == .starting {
-            Centered {
-                VStack {
-                    Text("Loading Patient Data")
-                        .font(.title)
-                    ProgressView()
-                        .scaleEffect(2)
-                        .padding()
-                }
-            }
-            .alert(model.errorTitle, isPresented: $model.errorVisible) {
-                Button(role: .cancel) {
-                    model.phase = .notStarted
-                } label: {
-                    Text("OK")
-                }
-            } message: {
-                Text(model.errorMessage)
-            }
+            SurgeryStarting(model: model)
+                .showErrors(model)
         } else if model.phase == .aligning {
-            VStack {
-                ARViewContainer(model: model)
-            }
-            .overlay(alignment: .center) {
-                Image("Overlay")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 300)
-            }
-            .overlay(alignment: .bottomTrailing) {
-                HStack {
-                    Button(action: {
-                        model.startTracking()
-                    }, label: {
-                        Text("Track")
-                            .padding(8)
-                            .fontWeight(.heavy)
-                            .foregroundColor(.white)
-                            .background(.primaryGreen, in: .rect(cornerRadius: 4))
-                    })
-                    ConfirmButton(action: {
-                        model.stopSession()
-                    }, label: {
-                        Text("Cancel")
-                    })
-                    .alertTitle("Are you sure?")
-                    .alertMessage("Do you really want to cancel this procedure?")
-                    .alertCancelButton("No")
-                    .alertConfirmButton("Yes")
-                }
-                .padding()
-            }
-            .alert(model.errorTitle, isPresented: $model.errorVisible) {
-                Button(role: .cancel) {
-                    model.phase = .notStarted
-                } label: {
-                    Text("OK")
-                }
-            } message: {
-                Text(model.errorMessage)
-            }
+            SurgeryAligning(model: model)
+                .showErrors(model)
         } else if model.phase == .initializingTracking {
-            VStack {
-                ARViewContainer(model: model)
-                    .opacity(0.5) // to indicate they can't do anything during this.  you could also do brightness
-            }
-            .overlay(alignment: .center) {
-                VStack {
-                    Text("Locking Onto Femur")
-                        .font(.title)
-                    ProgressView()
-                        .scaleEffect(2)
-                        .padding()
-                }
-            }
-            .alert(model.errorTitle, isPresented: $model.errorVisible) {
-                Button(role: .cancel) {
-                    model.phase = .notStarted
-                } label: {
-                    Text("OK")
-                }
-            } message: {
-                Text(model.errorMessage)
-            }
+            SurgeryInitializingTracking(model: model)
+                .showErrors(model)
         } else {
-            VStack {
-                ARViewContainer(model: model)
-            }
-            .overlay(alignment: .top) {
-                if Settings.shared.showAxisEditor {
-                    AxisAdjustForm(model: model)
-                }
-            }
-            .overlay(alignment: .bottom) {
-                Button(action: {
-                    model.stopSession()
-                }, label: {
-                    Text("Stop")
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
-                        .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-                        .background(
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(.red))
-                })
-            }
+            SurgeryTracking(model: model, enableDevMode: settings.enableDevMode)
+                .showErrors(model)
+        }
+    }
+}
+
+struct ShowErrorsModifier: ViewModifier {
+    @ObservedObject var model: SurgeryModel
+
+    func body(content: Content) -> some View {
+        content
             .alert(model.errorTitle, isPresented: $model.errorVisible) {
                 Button(role: .cancel) {
                     model.phase = .notStarted
@@ -146,7 +40,13 @@ struct SurgeryView: View {
             } message: {
                 Text(model.errorMessage)
             }
-        }
+    }
+}
+
+extension View {
+    // makes it easy to show errors from the model
+    func showErrors(_ model: SurgeryModel) -> some View {
+        modifier(ShowErrorsModifier(model: model))
     }
 }
 

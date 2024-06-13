@@ -16,7 +16,6 @@ struct RootView: View {
         case .initialized:
             let controller = SurgeryController()
             SurgeryView(model: controller.model)
-                //.edgesIgnoringSafeArea(.all)
         }
     }
 }
