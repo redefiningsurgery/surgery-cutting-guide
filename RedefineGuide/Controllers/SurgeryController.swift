@@ -380,6 +380,6 @@ extension SurgeryController: SurgeryModelDelegate {
         guard let scene = self.scene else {
             throw logger.logAndGetError("Could not get scene to export")
         }
-        
+        try scene.export()
     }
 }

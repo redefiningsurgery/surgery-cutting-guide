@@ -9,6 +9,12 @@
 /* Begin PBXBuildFile section */
 		9704FBB72BE56F1B00EDBA81 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 9704FBB62BE56F1B00EDBA81 /* SwiftProtobuf */; };
 		9710BDE42BE5629700D30434 /* messages.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9710BDE32BE5629700D30434 /* messages.pb.swift */; };
+		9720B7012C1A44F100A672C7 /* Surgery-NotStarted.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B7002C1A44F100A672C7 /* Surgery-NotStarted.swift */; };
+		9720B7032C1A457000A672C7 /* Surgery-Tracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B7022C1A457000A672C7 /* Surgery-Tracking.swift */; };
+		9720B7052C1B3BB600A672C7 /* Surgery-InitializingTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B7042C1B3BB600A672C7 /* Surgery-InitializingTracking.swift */; };
+		9720B7072C1B3C1E00A672C7 /* Surgery-Aligning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B7062C1B3C1E00A672C7 /* Surgery-Aligning.swift */; };
+		9720B7092C1B3C7700A672C7 /* Surgery-Starting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B7082C1B3C7700A672C7 /* Surgery-Starting.swift */; };
+		9720B70B2C1B3CB500A672C7 /* Surgery-Done.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9720B70A2C1B3CB500A672C7 /* Surgery-Done.swift */; };
 		973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */; };
 		973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973AEEEE2BBF3FF70083CBED /* RootView.swift */; };
 		973AEEF12BBF3FF90083CBED /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 973AEEF02BBF3FF90083CBED /* Assets.xcassets */; };
@@ -61,6 +67,12 @@
 /* Begin PBXFileReference section */
 		9710BDE12BE5626200D30434 /* messages.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.protobuf; path = messages.proto; sourceTree = "<group>"; };
 		9710BDE32BE5629700D30434 /* messages.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = messages.pb.swift; sourceTree = "<group>"; };
+		9720B7002C1A44F100A672C7 /* Surgery-NotStarted.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Surgery-NotStarted.swift"; sourceTree = "<group>"; };
+		9720B7022C1A457000A672C7 /* Surgery-Tracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Surgery-Tracking.swift"; sourceTree = "<group>"; };
+		9720B7042C1B3BB600A672C7 /* Surgery-InitializingTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Surgery-InitializingTracking.swift"; sourceTree = "<group>"; };
+		9720B7062C1B3C1E00A672C7 /* Surgery-Aligning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Surgery-Aligning.swift"; sourceTree = "<group>"; };
+		9720B7082C1B3C7700A672C7 /* Surgery-Starting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Surgery-Starting.swift"; sourceTree = "<group>"; };
+		9720B70A2C1B3CB500A672C7 /* Surgery-Done.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Surgery-Done.swift"; sourceTree = "<group>"; };
 		973AEEE92BBF3FF70083CBED /* RedefineGuide.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RedefineGuide.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		973AEEEC2BBF3FF70083CBED /* RedefineGuideApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedefineGuideApp.swift; sourceTree = "<group>"; };
 		973AEEEE2BBF3FF70083CBED /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -233,6 +245,12 @@
 				973AEEEE2BBF3FF70083CBED /* RootView.swift */,
 				973AEF3A2BC433EE0083CBED /* SurgeryView.swift */,
 				974CCD1E2C10EF7100F0BEFE /* AxisAdjustForm.swift */,
+				9720B7002C1A44F100A672C7 /* Surgery-NotStarted.swift */,
+				9720B7022C1A457000A672C7 /* Surgery-Tracking.swift */,
+				9720B7042C1B3BB600A672C7 /* Surgery-InitializingTracking.swift */,
+				9720B7062C1B3C1E00A672C7 /* Surgery-Aligning.swift */,
+				9720B7082C1B3C7700A672C7 /* Surgery-Starting.swift */,
+				9720B70A2C1B3CB500A672C7 /* Surgery-Done.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -409,15 +427,18 @@
 				973AEF2F2BBFAA6F0083CBED /* Constants.swift in Sources */,
 				973AEF1B2BBF42390083CBED /* LifecycleEventMonitor.swift in Sources */,
 				973AEF352BBFAC6E0083CBED /* AppInitializationModel.swift in Sources */,
+				9720B70B2C1B3CB500A672C7 /* Surgery-Done.swift in Sources */,
 				9710BDE42BE5629700D30434 /* messages.pb.swift in Sources */,
 				973AEEEF2BBF3FF70083CBED /* RootView.swift in Sources */,
 				973AEF312BBFAB250083CBED /* ARViewContainer.swift in Sources */,
+				9720B7092C1B3C7700A672C7 /* Surgery-Starting.swift in Sources */,
 				97936C9E2BD6DF9A005930F4 /* lodepng.cpp in Sources */,
 				97648E7A2C08DA9B00638226 /* ConfirmButton.swift in Sources */,
 				97C705132BFE659A00194835 /* Settings.swift in Sources */,
 				973AEF202BBF427D0083CBED /* AsyncButton.swift in Sources */,
 				974CCD1F2C10EF7100F0BEFE /* AxisAdjustForm.swift in Sources */,
 				973AEF2C2BBFAA080083CBED /* ThreadSafeDictionary.swift in Sources */,
+				9720B7012C1A44F100A672C7 /* Surgery-NotStarted.swift in Sources */,
 				973AEF3B2BC433EE0083CBED /* SurgeryView.swift in Sources */,
 				973AEF332BBFAC3F0083CBED /* AppInitializer.swift in Sources */,
 				973AEF3F2BC456A20083CBED /* SurgeryModel.swift in Sources */,
@@ -425,11 +446,14 @@
 				973AEF392BBFB3670083CBED /* SurgeryController.swift in Sources */,
 				973AEF172BBF41B40083CBED /* Logging.swift in Sources */,
 				973AEEED2BBF3FF70083CBED /* RedefineGuideApp.swift in Sources */,
+				9720B7052C1B3BB600A672C7 /* Surgery-InitializingTracking.swift in Sources */,
 				973AEF192BBF41E20083CBED /* Helpers.swift in Sources */,
 				973AEF292BBFA9FA0083CBED /* AsyncQueueProcessor.swift in Sources */,
 				97936C8F2BD6DDFF005930F4 /* DepthMapSaver.swift in Sources */,
 				97936C9D2BD6DF9A005930F4 /* PngEncoder.mm in Sources */,
 				973AEF372BBFB0250083CBED /* Centered.swift in Sources */,
+				9720B7072C1B3C1E00A672C7 /* Surgery-Aligning.swift in Sources */,
+				9720B7032C1A457000A672C7 /* Surgery-Tracking.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

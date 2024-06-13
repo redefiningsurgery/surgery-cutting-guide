@@ -65,16 +65,22 @@ extension SCNNode {
     }
 }
 
-func exportScene(scene: SCNScene) throws {
-    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-    let fileName = dateFormatter.string(from: Date())
-    let fileNameExt = "\(fileName).scn"
-    let url = documentsDirectory.appendingPathComponent(fileNameExt)
-    scene.write(to: url, delegate: nil, progressHandler: { (totalProgress, error, stop) in
-        print(totalProgress)
-    })
+extension SCNScene {
+    
+    /// Saves the current scene in the file system so it can be imported into a computer
+    func export() throws {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let fileName = dateFormatter.string(from: Date())
+        let fileNameExt = "\(fileName).scn"
+        let url = documentsDirectory.appendingPathComponent(fileNameExt)
+        // todo: this could be made async
+        self.write(to: url, delegate: nil, progressHandler: { (totalProgress, error, stop) in
+            print(totalProgress)
+        })
+    }
+    
 }
 
 func createAxis(radius: Float, length: Float) -> SCNNode {
