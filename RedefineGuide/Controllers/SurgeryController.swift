@@ -22,6 +22,7 @@ class SurgeryController: NSObject {
     /// The number of times the tracking has been updated.  Each time is a trip to the server
     private var trackingCount: Int = 0
     private var cancellables: Set<AnyCancellable> = []
+    private var updateOnModelPositionChanges = true
 
     @MainActor
     override init() {
@@ -33,14 +34,27 @@ class SurgeryController: NSObject {
 
         Publishers.Merge6(model.$axis1X, model.$axis1Y, model.$axis1Z, model.$axis2X, model.$axis2Y, model.$axis2Z)
             .sink { [weak self] newValue in
-                self?.updateAxisPosition()
+                if let self = self, self.updateOnModelPositionChanges {
+                    self.updateAxisPosition()
+                }
             }
             .store(in: &cancellables)
         Publishers.Merge3(model.$axisXAngle, model.$axisYAngle, model.$axisZAngle)
             .sink { [weak self] newValue in
-                self?.updateAxisPosition()
+                if let self = self, self.updateOnModelPositionChanges {
+                    self.updateAxisPosition()
+                }
             }
             .store(in: &cancellables)
+
+        Publishers.Merge3(model.$overlayX, model.$overlayY, model.$overlayZ)
+            .sink { [weak self] newValue in
+                if let self = self, self.updateOnModelPositionChanges, let overlayNode = self.overlayNode {
+                    self.updateOverlayPosition(overlayNode: overlayNode)
+                }
+            }
+            .store(in: &cancellables)
+
     }
     
     func pause() {
@@ -334,12 +348,20 @@ extension SurgeryController: SurgeryModelDelegate {
             guard !Task.isCancelled else {
                 return
             }
-            logger.info("Fixing overlay at position \(position) and orientation \(orientation)")
-            overlayNode.position = position
+            self.updateOnModelPositionChanges = false
+            model.overlayX = resultTransform.columns.3.x
+            model.overlayY = resultTransform.columns.3.y
+            model.overlayZ = resultTransform.columns.3.z
+            self.updateOnModelPositionChanges = true
+
             overlayNode.orientation = orientation
             overlayNode.opacity = 0.8
 
             ensureAxises(overlayNode: overlayNode)
+            updateOverlayPosition(overlayNode: overlayNode)
+
+            logger.info("Placed overlay at position \(position) and orientation \(orientation)")
+            logger.info("Angles: \(overlayNode.eulerAngles)")
         }
     }
     
@@ -359,6 +381,12 @@ extension SurgeryController: SurgeryModelDelegate {
         updateAxisPosition()
         overlayNode.addChildNode(axis1)
         overlayNode.addChildNode(axis2)
+    }
+    
+    @MainActor
+    func updateOverlayPosition(overlayNode: SCNNode) {
+        let position = SCNVector3(model.overlayX, model.overlayY, model.overlayZ)
+        overlayNode.position = position
     }
     
     @MainActor
