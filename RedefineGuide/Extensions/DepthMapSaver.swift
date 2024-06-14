@@ -13,8 +13,8 @@ func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Requests_G
     request.depthMap = try encodeDepthMapToPng(depthData.depthMap)
     request.rgbImage = try encodeRgbToPng(frame.capturedImage)
     // https://developer.apple.com/documentation/arkit/arcamera/2875730-intrinsics
-    request.intrinsics = frame.camera.intrinsics.toArray()
-    request.transform = frame.camera.transform.toArray()
+    request.intrinsics = frame.camera.intrinsics.toArrayRowMajor()
+    request.transform = frame.camera.transform.toArrayRowMajor()
     return request
 }
 
@@ -115,23 +115,22 @@ extension FileHandle {
 
 
 extension simd_float3x3 {
-    func toArray() -> [Float] {
+    func toArrayRowMajor() -> [Float] {
         return [
-            self.columns.0.x, self.columns.1.x, self.columns.2.x, // First row
-            self.columns.0.y, self.columns.1.y, self.columns.2.y, // Second row
-            self.columns.0.z, self.columns.1.z, self.columns.2.z  // Third row
+            self.columns.0.x, self.columns.1.x, self.columns.2.x,
+            self.columns.0.y, self.columns.1.y, self.columns.2.y,
+            self.columns.0.z, self.columns.1.z, self.columns.2.z,
         ]
     }
 }
 
 extension simd_float4x4 {
-    func toArray() -> [Float] {
-        // i know it's weird, but w is the last column
+    func toArrayRowMajor() -> [Float] {
         return [
-            self.columns.0.x, self.columns.1.x, self.columns.2.x, self.columns.3.x, // First row
-            self.columns.0.y, self.columns.1.y, self.columns.2.y, self.columns.3.y, // Second row
-            self.columns.0.z, self.columns.1.z, self.columns.2.z, self.columns.3.z, // Third row
-            self.columns.0.w, self.columns.1.w, self.columns.2.w, self.columns.3.w  // Fourth row
+            self.columns.0.x, self.columns.1.x, self.columns.2.x, self.columns.3.x,
+            self.columns.0.y, self.columns.1.y, self.columns.2.y, self.columns.3.y,
+            self.columns.0.z, self.columns.1.z, self.columns.2.z, self.columns.3.z,
+            self.columns.0.w, self.columns.1.w, self.columns.2.w, self.columns.3.w,
         ]
     }
 }

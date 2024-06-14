@@ -16,7 +16,7 @@ struct SurgeryNotStarted: View {
                 Spacer()
             }
         }
-        .overlay(alignment: .bottomTrailing) {
+        .overlay(alignment: .topTrailing) {
             NavigationLink(destination: SettingsForm()) {
                 Image(systemName: "gearshape")
                     .imageScale(.large)

@@ -18,7 +18,7 @@ struct SurgeryDone: View {
                 }
             }
         }
-        .overlay(alignment: .bottomTrailing) {
+        .overlay(alignment: .topTrailing) {
             NavigationLink(destination: SettingsForm()) {
                 Image(systemName: "gearshape")
                     .imageScale(.large)

@@ -203,19 +203,18 @@ func simd_make_float4x4(translation: SIMD3<Float>, rotation: (pitch: Float, yaw:
     return simd_mul(rotationMatrix, translationMatrix)
 }
 
-func createSim4Float4x4(_ array: [Float]) -> simd_float4x4? {
+func createSim4Float4x4FromRowMajor(_ array: [Float]) -> simd_float4x4? {
     guard array.count == 16 else {
         return nil
     }
     
-    // Create simd_float4 vectors for each row
+    // Interpret the input array as row-major order, then create columns for column-major storage
     let row0 = simd_float4(array[0], array[1], array[2], array[3])
     let row1 = simd_float4(array[4], array[5], array[6], array[7])
     let row2 = simd_float4(array[8], array[9], array[10], array[11])
     let row3 = simd_float4(array[12], array[13], array[14], array[15])
     
-    // Construct the simd_float4x4 matrix from the rows
-    let matrix = simd_float4x4(row0, row1, row2, row3)
+    let matrix = simd_float4x4(rows: [row0, row1, row2, row3])
     return matrix
 }
 

@@ -333,9 +333,10 @@ extension SurgeryController: SurgeryModelDelegate {
         }
         logger.info("Tracking update \(trackingCount) Frame timestamp: \(frame.timestamp) Transform: \(response.transform)")
 
-        guard let resultTransform = createSim4Float4x4(response.transform)?.transpose else {
+        guard let resultTransform = createSim4Float4x4FromRowMajor(response.transform) else {
             throw logger.logAndGetError("Result transform was invalid")
         }
+        
         guard let overlayNode = overlayNode else {
             throw logger.logAndGetError("Overlay was not present")
         }
