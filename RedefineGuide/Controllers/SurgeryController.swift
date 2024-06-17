@@ -32,15 +32,21 @@ class SurgeryController: NSObject {
 
         model.delegate = self
 
+        Settings.shared.$showARDebugging
+            .sink { [weak self] _ in
+                self?.updateSceneViewDebugOptions()
+            }
+            .store(in: &cancellables)
+        
         Publishers.Merge6(model.$axis1X, model.$axis1Y, model.$axis1Z, model.$axis2X, model.$axis2Y, model.$axis2Z)
-            .sink { [weak self] newValue in
+            .sink { [weak self] _ in
                 if let self = self, self.updateOnModelPositionChanges {
                     self.updateAxisPosition()
                 }
             }
             .store(in: &cancellables)
         Publishers.Merge3(model.$axisXAngle, model.$axisYAngle, model.$axisZAngle)
-            .sink { [weak self] newValue in
+            .sink { [weak self] _ in
                 if let self = self, self.updateOnModelPositionChanges {
                     self.updateAxisPosition()
                 }
@@ -48,7 +54,7 @@ class SurgeryController: NSObject {
             .store(in: &cancellables)
 
         Publishers.Merge3(model.$overlayX, model.$overlayY, model.$overlayZ)
-            .sink { [weak self] newValue in
+            .sink { [weak self] _ in
                 if let self = self, self.updateOnModelPositionChanges, let overlayNode = self.overlayNode {
                     self.updateOverlayPosition(overlayNode: overlayNode)
                 }
@@ -67,11 +73,11 @@ class SurgeryController: NSObject {
             throw logger.logAndGetError("No sceneView.  Cannot start ARSession")
         }
         let configuration = ARWorldTrackingConfiguration()
+        configuration.frameSemantics.insert(.sceneDepth)
         configuration.frameSemantics.insert(.smoothedSceneDepth)
-        // https://developer.apple.com/documentation/arkit/arkit_in_ios/content_anchors/scanning_and_detecting_3d_objects
-        configuration.planeDetection = .horizontal
-        configuration.isAutoFocusEnabled = true
- 
+        configuration.planeDetection = [] // when this was set, the overlay was floating around a lot.  removing plane detection helped a lot
+        configuration.isAutoFocusEnabled = true // super critical because the bone is close up and without this it would be totally out of focus
+
         sceneView.session.delegate = self
         sceneView.session.run(configuration, options: [.resetTracking])
         logger.info("Started AR session")
@@ -149,6 +155,16 @@ extension SurgeryController: ARSessionDelegate {
             }
         }
     }
+    
+    func session(_ session: ARSession, didChange geoTrackingStatus: ARGeoTrackingStatus
+    ) {
+        self.logger.info("Tracking status changed")
+    }
+    
+    func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
+        self.logger.info("Tracking state changed")
+
+    }
 }
 
 
@@ -163,9 +179,6 @@ extension SurgeryController: SurgeryModelDelegate {
         }
         let sceneView = ARSCNView()
         sceneView.automaticallyUpdatesLighting = true
-//        sceneView.debugOptions = [
-//            .showWorldOrigin,
-//        ]
         sceneView.delegate = self
         
         let scene = SCNScene()
@@ -173,9 +186,27 @@ extension SurgeryController: SurgeryModelDelegate {
         
         self.scene = scene
         self.sceneView = sceneView
+        
+        updateSceneViewDebugOptions()
         try startArSession()
         
         return sceneView
+    }
+    
+    func updateSceneViewDebugOptions() {
+        guard let sceneView = self.sceneView else {
+            return
+        }
+
+        if Settings.shared.showARDebugging {
+            sceneView.debugOptions = [
+                .showWorldOrigin,
+                .showBoundingBoxes,
+                .showFeaturePoints
+            ]
+        } else {
+            sceneView.debugOptions = []
+        }
     }
     
     func resetWorldOrigin() throws {
@@ -340,10 +371,6 @@ extension SurgeryController: SurgeryModelDelegate {
         guard let overlayNode = overlayNode else {
             throw logger.logAndGetError("Overlay was not present")
         }
-        
-        let position = SCNVector3(resultTransform.columns.3.x, resultTransform.columns.3.y, resultTransform.columns.3.z)
-        let orientationVector = simd_quaternion(resultTransform).vector
-        let orientation = SCNQuaternion(orientationVector.x, orientationVector.y, orientationVector.z, orientationVector.w)
 
         await MainActor.run {
             guard !Task.isCancelled else {
@@ -355,14 +382,11 @@ extension SurgeryController: SurgeryModelDelegate {
             model.overlayZ = resultTransform.columns.3.z
             self.updateOnModelPositionChanges = true
 
-            overlayNode.orientation = orientation
+            overlayNode.simdOrientation = simd_quaternion(resultTransform)
             overlayNode.opacity = 0.8
 
             ensureAxises(overlayNode: overlayNode)
             updateOverlayPosition(overlayNode: overlayNode)
-
-            logger.info("Placed overlay at position \(position) and orientation \(orientation)")
-            logger.info("Angles: \(overlayNode.eulerAngles)")
         }
     }
     
@@ -388,6 +412,9 @@ extension SurgeryController: SurgeryModelDelegate {
     func updateOverlayPosition(overlayNode: SCNNode) {
         let position = SCNVector3(model.overlayX, model.overlayY, model.overlayZ)
         overlayNode.position = position
+        
+        logger.info("Placed overlay at position \(position) and orientation \(overlayNode.orientation) with angles \(overlayNode.eulerAngles)")
+        logger.info("Angles: \(overlayNode.eulerAngles)")
     }
     
     @MainActor

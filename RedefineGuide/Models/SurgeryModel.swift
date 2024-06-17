@@ -129,6 +129,20 @@ class SurgeryModel: NSObject, ObservableObject {
     }
     
     @MainActor
+    func trackOnce() async {
+        guard let delegate = delegate else {
+            logger.warning("trackOnce did nothing because delegate is nil")
+            return
+        }
+        do {
+            try await delegate.trackOnce()
+        } catch {
+            logger.error("trackOnce: \(error.localizedDescription)")
+            setError(errorTitle: "Could not track object", errorMessage: error.localizedDescription)
+        }
+    }
+    
+    @MainActor
     func exportScene() async {
         guard let delegate = delegate else {
             logger.warning("exportScene did nothing because delegate is nil")
@@ -152,5 +166,6 @@ protocol SurgeryModelDelegate: AnyObject {
     func startTracking() async throws
     func startSession() async throws
     func stopSession() async throws
+    func trackOnce() async throws
     func exportScene() async throws
 }

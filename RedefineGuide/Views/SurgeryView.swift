@@ -20,7 +20,7 @@ struct SurgeryView: View {
             SurgeryInitializingTracking(model: model)
                 .showErrors(model)
         } else {
-            SurgeryTracking(model: model, enableDevMode: settings.enableDevMode)
+            SurgeryTracking(model: model, enableDevMode: settings.enableDevMode, isContinuousTracking: settings.continuouslyTrack)
                 .showErrors(model)
         }
     }

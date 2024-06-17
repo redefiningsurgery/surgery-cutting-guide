@@ -5,6 +5,8 @@ struct SurgeryTracking: View {
     
     var enableDevMode: Bool = false
     
+    var isContinuousTracking: Bool = false
+    
     @State private var isDevModeActive = false
     
     var body: some View {
@@ -29,6 +31,14 @@ struct SurgeryTracking: View {
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(.red))
                 })
+                // button to manually update tracking
+                if !isContinuousTracking {
+                    AsyncButton(showSuccessIndicator: true, action: {
+                        await model.trackOnce()
+                    }, label: {
+                        Text("Update")
+                    })
+                }
             }
         }
         .overlay(alignment: .bottomTrailing) {
@@ -72,5 +82,5 @@ struct SurgeryTracking: View {
 
 #Preview("Dev mode") {
     let model = SurgeryModel()
-    return SurgeryTracking(model: model, enableDevMode: true)
+    return SurgeryTracking(model: model, enableDevMode: true, isContinuousTracking: false)
 }
