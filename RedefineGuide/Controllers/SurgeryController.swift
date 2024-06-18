@@ -39,6 +39,7 @@ class SurgeryController: NSObject {
             .store(in: &cancellables)
         
         Publishers.Merge6(model.$axis1X, model.$axis1Y, model.$axis1Z, model.$axis2X, model.$axis2Y, model.$axis2Z)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 if let self = self, self.updateOnModelPositionChanges {
                     self.updateAxisPosition()
@@ -46,6 +47,7 @@ class SurgeryController: NSObject {
             }
             .store(in: &cancellables)
         Publishers.Merge3(model.$axisXAngle, model.$axisYAngle, model.$axisZAngle)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 if let self = self, self.updateOnModelPositionChanges {
                     self.updateAxisPosition()
@@ -54,6 +56,7 @@ class SurgeryController: NSObject {
             .store(in: &cancellables)
 
         Publishers.Merge3(model.$overlayX, model.$overlayY, model.$overlayZ)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 if let self = self, self.updateOnModelPositionChanges, let overlayNode = self.overlayNode {
                     self.updateOverlayPosition(overlayNode: overlayNode)
@@ -77,7 +80,8 @@ class SurgeryController: NSObject {
         configuration.frameSemantics.insert(.smoothedSceneDepth)
         configuration.planeDetection = [] // when this was set, the overlay was floating around a lot.  removing plane detection helped a lot
         configuration.isAutoFocusEnabled = true // super critical because the bone is close up and without this it would be totally out of focus
-
+        // configuration.worldAlignment = .camera setting this makes it super stable but when you move the camera, the overlay moves as well.  but this is interesting
+        
         sceneView.session.delegate = self
         sceneView.session.run(configuration, options: [.resetTracking])
         logger.info("Started AR session")
@@ -162,8 +166,7 @@ extension SurgeryController: ARSessionDelegate {
     }
     
     func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
-        self.logger.info("Tracking state changed")
-
+        self.logger.info("Tracking state changed to \(camera.trackingState)")
     }
 }
 
