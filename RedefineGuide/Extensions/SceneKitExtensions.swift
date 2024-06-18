@@ -34,7 +34,7 @@ extension SCNNode {
     /// Gets the bounding box from the scene's view for this node
     func getBoundingBoxInScreenCoords(in sceneView: ARSCNView) -> CGRect {
         let (minCorner, maxCorner) = self.boundingBox
-
+        
         // Create an array of vertices by combining min and max coordinates
         let vertices = [
             SCNVector3(minCorner.x, minCorner.y, minCorner.z),
@@ -46,22 +46,30 @@ extension SCNNode {
             SCNVector3(minCorner.x, maxCorner.y, maxCorner.z),
             SCNVector3(maxCorner.x, maxCorner.y, maxCorner.z)
         ].map { self.convertPosition($0, to: nil) } // Convert each vertex to world coordinates
-
+        
         // Project all world coordinates to screen coordinates
         let screenPoints = vertices.map { sceneView.projectPoint($0) }
-
+        
         // Find the min and max coordinates from projected points
         let minX = screenPoints.map { CGFloat($0.x) }.min() ?? 0
         let maxX = screenPoints.map { CGFloat($0.x) }.max() ?? 0
         let minY = screenPoints.map { CGFloat($0.y) }.min() ?? 0
         let maxY = screenPoints.map { CGFloat($0.y) }.max() ?? 0
-
+        
         // Calculate width and height from min and max coordinates
         let width = maxX - minX
         let height = maxY - minY
-
+        
         // Create and return the CGRect
         return CGRect(x: minX, y: minY, width: width, height: height)
+    }
+    
+    func getAnglesInDegrees() -> (x: CGFloat, y: CGFloat, z: CGFloat) {
+        let eulerAngles = self.eulerAngles
+
+        return (radiansToDegrees(CGFloat(eulerAngles.x)),
+                radiansToDegrees(CGFloat(eulerAngles.y)),
+                radiansToDegrees(CGFloat(eulerAngles.z)))
     }
 }
 
@@ -88,6 +96,30 @@ extension SCNScene {
         }
     }
     
+}
+
+func radiansToDegrees(_ radians: CGFloat) -> CGFloat {
+    let degrees = radians * 180.0 / .pi
+    return degrees >= 0 ? degrees : degrees.truncatingRemainder(dividingBy: 360) + 360
+}
+
+func degreesToRadians(_ degrees: CGFloat) -> CGFloat {
+    return degrees * .pi / 180.0
+}
+
+func degreesToQuaternion(xDegrees: CGFloat, yDegrees: CGFloat, zDegrees: CGFloat) -> SCNQuaternion {
+    // Convert degrees to radians
+    let xRadians = degreesToRadians(xDegrees)
+    let yRadians = degreesToRadians(yDegrees)
+    let zRadians = degreesToRadians(zDegrees)
+    
+    // Create Euler angles vector
+    let eulerAngles = SCNVector3(xRadians, yRadians, zRadians)
+    
+    // Create a node to utilize SceneKit's conversion
+    let node = SCNNode()
+    node.eulerAngles = eulerAngles
+    return node.orientation
 }
 
 func createAxis(radius: Float, length: Float) -> SCNNode {
@@ -243,4 +275,13 @@ func loadMDLAsset(_ data: Data) throws -> MDLAsset {
     // delete the file cuz we don't need it
     try FileManager.default.removeItem(at: temporaryFileURL)
     return asset
+}
+
+func loadModelNode(_ data: Data) throws -> SCNNode {
+    let modelAsset = try loadMDLAsset(data)
+    modelAsset.loadTextures()
+    let modelObject = modelAsset.object(at: 0)
+    
+    // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
+    return SCNNode(mdlObject: modelObject)
 }

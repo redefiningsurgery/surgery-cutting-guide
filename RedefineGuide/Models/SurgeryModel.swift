@@ -42,7 +42,11 @@ class SurgeryModel: NSObject, ObservableObject {
     @Published @MainActor var overlayX: Float = 0
     @Published @MainActor var overlayY: Float = 0
     @Published @MainActor var overlayZ: Float = 0
-    
+    @Published @MainActor var overlayXAngle: CGFloat = 0
+    @Published @MainActor var overlayYAngle: CGFloat = 0
+    @Published @MainActor var overlayZAngle: CGFloat = 0
+    @Published @MainActor var overlayOpacity: Float = 0.8
+
     var delegate: SurgeryModelDelegate? = nil
     private var logger = RedefineLogger("SurgeryModel")
 

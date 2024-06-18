@@ -12,10 +12,12 @@ struct SettingsForm: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Dev Settings")) {
+            Section(header: Text("Server URL")) {
                 TextField("Server URL", text: $settings.devServerUrl)
                     .textInputAutocapitalization(.never)
                     .disableAutocorrection(true)
+            }
+            Section(header: Text("Dev Settings")) {
                 Toggle("Continuously track using server", isOn: $settings.continuouslyTrack)
                 Toggle("Save server requests", isOn: $settings.saveRequests)
                 Toggle("Show AR debugging visuals", isOn: $settings.showARDebugging)

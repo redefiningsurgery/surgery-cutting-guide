@@ -52,13 +52,26 @@ struct AxisAdjustForm: View {
                     Text("Overlay position")
                         .font(.title3)
                     Stepper(value: $model.overlayX, in: -10...10, step: 0.001) {
-                        Text("X1: \(model.overlayX, specifier: "%.3f")")
+                        Text("X: \(model.overlayX, specifier: "%.3f")")
                     }
                     Stepper(value: $model.overlayY, in: -10...10, step: 0.001) {
-                        Text("Y1: \(model.overlayY, specifier: "%.3f")")
+                        Text("Y: \(model.overlayY, specifier: "%.3f")")
                     }
                     Stepper(value: $model.overlayZ, in: -10...10, step: 0.001) {
-                        Text("Z1: \(model.overlayZ, specifier: "%.3f")")
+                        Text("Z: \(model.overlayZ, specifier: "%.3f")")
+                    }
+                }
+                VStack {
+                    Text("Overlay Angles")
+                        .font(.title3)
+                    Stepper(value: $model.overlayXAngle, in: -360...360, step: 1.0) {
+                        Text("X Angle: \(model.overlayXAngle, specifier: "%.0f")")
+                    }
+                    Stepper(value: $model.overlayYAngle, in: -360...360, step: 1.0) {
+                        Text("Y Angle: \(model.overlayYAngle, specifier: "%.0f")")
+                    }
+                    Stepper(value: $model.overlayZAngle, in: -360...360, step: 1.0) {
+                        Text("Z Angle: \(model.overlayZAngle, specifier: "%.0f")")
                     }
                 }
             }

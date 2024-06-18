@@ -39,7 +39,7 @@ class SurgeryController: NSObject {
             .store(in: &cancellables)
         
         Publishers.Merge6(model.$axis1X, model.$axis1Y, model.$axis1Z, model.$axis2X, model.$axis2Y, model.$axis2Z)
-            .receive(on: DispatchQueue.main)
+            .receive(on: DispatchQueue.main) // must do this or else changes will be "off by one" when you change values in the UI
             .sink { [weak self] _ in
                 if let self = self, self.updateOnModelPositionChanges {
                     self.updateAxisPosition()
@@ -54,7 +54,6 @@ class SurgeryController: NSObject {
                 }
             }
             .store(in: &cancellables)
-
         Publishers.Merge3(model.$overlayX, model.$overlayY, model.$overlayZ)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -63,7 +62,14 @@ class SurgeryController: NSObject {
                 }
             }
             .store(in: &cancellables)
-
+        Publishers.Merge3(model.$overlayXAngle, model.$overlayYAngle, model.$overlayZAngle)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                if let self = self, self.updateOnModelPositionChanges, let overlayNode = self.overlayNode {
+                    self.updateOverlayOrientation(overlayNode: overlayNode)
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func pause() {
@@ -78,7 +84,7 @@ class SurgeryController: NSObject {
         let configuration = ARWorldTrackingConfiguration()
         configuration.frameSemantics.insert(.sceneDepth)
         configuration.frameSemantics.insert(.smoothedSceneDepth)
-        configuration.planeDetection = [] // when this was set, the overlay was floating around a lot.  removing plane detection helped a lot
+        configuration.planeDetection = [] // when this was set, the overlay was floating around a lot.  removing plane detection helped significantly: https://stackoverflow.com/questions/45020192/how-to-keep-arkit-scnnode-in-place
         configuration.isAutoFocusEnabled = true // super critical because the bone is close up and without this it would be totally out of focus
         // configuration.worldAlignment = .camera setting this makes it super stable but when you move the camera, the overlay moves as well.  but this is interesting
         
@@ -88,13 +94,7 @@ class SurgeryController: NSObject {
     }
 
     func loadOverlay(_ data: Data) throws -> SCNNode {
-        let modelAsset = try loadMDLAsset(data)
-        modelAsset.loadTextures()
-        let modelObject = modelAsset.object(at: 0)
-
-        // this causes the UI to freeze.  but I tried to put it in a background task and that didn't help. we'll have to handle this later
-        let modelNode = SCNNode(mdlObject: modelObject)
-
+        let modelNode = try loadModelNode(data)
         let (min, max) = modelNode.boundingBox
         let width = max.x - min.x
         let height = max.y - min.y
@@ -123,6 +123,10 @@ class SurgeryController: NSObject {
 extension SurgeryController: ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
 
+    }
+    
+    func renderer(_ renderer: any SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        logger.info("Added node to anchor")
     }
 }
 
@@ -265,9 +269,12 @@ extension SurgeryController: SurgeryModelDelegate {
             throw logger.logAndGetError("No session ID passed from server")
         }
         
-        self.overlayNode = try loadOverlay(response.model)
+        let overlayNode = try loadOverlay(response.model)
+        self.overlayNode = overlayNode
+
         sessionId = response.sessionID
         await MainActor.run {
+            overlayNode.opacity = CGFloat(model.overlayOpacity)
             model.phase = .aligning
         }
     }
@@ -380,13 +387,21 @@ extension SurgeryController: SurgeryModelDelegate {
                 return
             }
             self.updateOnModelPositionChanges = false
+            defer {
+                self.updateOnModelPositionChanges = true
+            }
+            
             model.overlayX = resultTransform.columns.3.x
             model.overlayY = resultTransform.columns.3.y
             model.overlayZ = resultTransform.columns.3.z
-            self.updateOnModelPositionChanges = true
 
             overlayNode.simdOrientation = simd_quaternion(resultTransform)
-            overlayNode.opacity = 0.8
+
+            let overlayAngles = overlayNode.getAnglesInDegrees()
+            logger.info("Overlay angles degrees: \(overlayAngles.x), \(overlayAngles.y), \(overlayAngles.z)")
+            model.overlayXAngle = overlayAngles.x
+            model.overlayYAngle = overlayAngles.y
+            model.overlayZAngle = overlayAngles.z
 
             ensureAxises(overlayNode: overlayNode)
             updateOverlayPosition(overlayNode: overlayNode)
@@ -417,7 +432,18 @@ extension SurgeryController: SurgeryModelDelegate {
         overlayNode.position = position
         
         logger.info("Placed overlay at position \(position) and orientation \(overlayNode.orientation) with angles \(overlayNode.eulerAngles)")
-        logger.info("Angles: \(overlayNode.eulerAngles)")
+    }
+
+    @MainActor
+    func updateOverlayOrientation(overlayNode: SCNNode) {
+        guard self.updateOnModelPositionChanges else {
+            logger.warning("updateOverlayOrientation should not be called now")
+            return
+        }
+        let orientation = degreesToQuaternion(xDegrees: model.overlayXAngle, yDegrees: model.overlayYAngle, zDegrees: model.overlayZAngle)
+        overlayNode.orientation = orientation
+        
+        logger.info("Placed overlay at orientation \(overlayNode.orientation) with angles \(overlayNode.eulerAngles)")
     }
     
     @MainActor
