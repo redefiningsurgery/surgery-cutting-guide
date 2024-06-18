@@ -21,6 +21,7 @@ struct SettingsForm: View {
                 Toggle("Continuously track using server", isOn: $settings.continuouslyTrack)
                 Toggle("Save server requests", isOn: $settings.saveRequests)
                 Toggle("Show AR debugging visuals", isOn: $settings.showARDebugging)
+                Toggle("Align to camera", isOn: $settings.alignOverlayWithCamera)
             }
         }
     }

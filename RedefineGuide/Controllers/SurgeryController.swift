@@ -12,7 +12,6 @@ class SurgeryController: NSObject {
     let model: SurgeryModel
     private var logger = RedefineLogger("SurgeryController")
     private var sceneView: ARSCNView? = nil
-    private var scene: SCNScene? = nil
     private var overlayNode: SCNNode?
     private var axis1: SCNNode?
     private var axis2: SCNNode?
@@ -23,7 +22,8 @@ class SurgeryController: NSObject {
     private var trackingCount: Int = 0
     private var cancellables: Set<AnyCancellable> = []
     private var updateOnModelPositionChanges = true
-
+    private var isArSessionRunning = false
+    
     @MainActor
     override init() {
         model = SurgeryModel()
@@ -32,9 +32,24 @@ class SurgeryController: NSObject {
 
         model.delegate = self
 
+        subscribeToModelChanges()
+    }
+    
+    /// Sets up observers to handle changes in the model and adapt accordingly
+    @MainActor
+    private func subscribeToModelChanges() {
         Settings.shared.$showARDebugging
             .sink { [weak self] _ in
-                self?.updateSceneViewDebugOptions()
+                if let self = self, let sceneView = self.sceneView {
+                    self.updateSceneViewDebugOptions(sceneView)
+                }
+            }
+            .store(in: &cancellables)
+        Settings.shared.$alignOverlayWithCamera
+            .sink { [weak self] _ in
+                if let self = self, let sceneView = self.sceneView {
+                    try? self.restartArSession()
+                }
             }
             .store(in: &cancellables)
         
@@ -72,26 +87,35 @@ class SurgeryController: NSObject {
             .store(in: &cancellables)
     }
     
-    func pause() {
-        self.sceneView?.session.pause()
-        logger.info("Stopped AR session")
-    }
-    
-    private func startArSession() throws {
-        guard let sceneView = sceneView else {
-            throw logger.logAndGetError("No sceneView.  Cannot start ARSession")
+    private func startArSession(_ sceneView: ARSCNView) throws {
+        guard !isArSessionRunning else {
+            logger.warning("Cannot start ARSession because it's already running")
+            return
         }
         let configuration = ARWorldTrackingConfiguration()
         configuration.frameSemantics.insert(.sceneDepth)
         configuration.frameSemantics.insert(.smoothedSceneDepth)
         configuration.planeDetection = [] // when this was set, the overlay was floating around a lot.  removing plane detection helped significantly: https://stackoverflow.com/questions/45020192/how-to-keep-arkit-scnnode-in-place
         configuration.isAutoFocusEnabled = true // super critical because the bone is close up and without this it would be totally out of focus
-        // configuration.worldAlignment = .camera setting this makes it super stable but when you move the camera, the overlay moves as well.  but this is interesting
-        
+        if Settings.shared.alignOverlayWithCamera {
+            configuration.worldAlignment = .camera // setting this makes it super stable but when you move the camera, the overlay moves as well.  but this is interesting and basically eliminiates the drift problem
+        }
         sceneView.session.delegate = self
         sceneView.session.run(configuration, options: [.resetTracking])
         logger.info("Started AR session")
+        isArSessionRunning = true
     }
+
+    func stopArSession(_ sceneView: ARSCNView) {
+        guard isArSessionRunning else {
+            logger.warning("Cannot stop ARSession because either there is no sceneView or the session is not running")
+            return
+        }
+        sceneView.session.pause()
+        isArSessionRunning = false
+        logger.info("Stopped AR session")
+    }
+
 
     func loadOverlay(_ data: Data) throws -> SCNNode {
         let modelNode = try loadModelNode(data)
@@ -126,7 +150,7 @@ extension SurgeryController: ARSCNViewDelegate {
     }
     
     func renderer(_ renderer: any SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        logger.info("Added node to anchor")
+        logger.info("Added node: \(node.name ?? "N/A") \(type(of: node)) to anchor: \(anchor.name ?? "N/A") \(type(of: anchor))")
     }
 }
 
@@ -191,20 +215,16 @@ extension SurgeryController: SurgeryModelDelegate {
         let scene = SCNScene()
         sceneView.scene = scene
         
-        self.scene = scene
         self.sceneView = sceneView
+        logger.info("Created AR scene view")
         
-        updateSceneViewDebugOptions()
-        try startArSession()
+        updateSceneViewDebugOptions(sceneView)
+        try startArSession(sceneView)
         
         return sceneView
     }
     
-    func updateSceneViewDebugOptions() {
-        guard let sceneView = self.sceneView else {
-            return
-        }
-
+    func updateSceneViewDebugOptions(_ sceneView: ARSCNView) {
         if Settings.shared.showARDebugging {
             sceneView.debugOptions = [
                 .showWorldOrigin,
@@ -216,11 +236,14 @@ extension SurgeryController: SurgeryModelDelegate {
         }
     }
     
-    func resetWorldOrigin() throws {
-        pause()
-        try startArSession()
+    func restartArSession() throws {
+        guard let sceneView = sceneView else {
+            return
+        }
+        stopArSession(sceneView)
+        try startArSession(sceneView)
     }
-    
+
     func executeRequest<T : Message>(of: T.Type, method: String, path: String, body: Data? = nil) async throws -> T {
         let urlString = "\(getServerUrl())/\(path)"
         guard let url = URL(string: urlString) else {
@@ -258,8 +281,12 @@ extension SurgeryController: SurgeryModelDelegate {
         await MainActor.run {
             model.phase = .starting
         }
-        // make sure the settings were configured.  otherwise they will get vague errors and not realize what needs done
-        guard isServerUrlSet() else {
+        
+        if let sceneView = sceneView, !isArSessionRunning {
+            try startArSession(sceneView)
+        }
+
+        guard Settings.shared.isServerUrlSet else {
             throw logger.logAndGetError("Server url has not been set yet.  Please set it in the Settings for the app.")
         }
         
@@ -283,14 +310,17 @@ extension SurgeryController: SurgeryModelDelegate {
         if let trackingTask = trackingTask, !trackingTask.isCancelled {
             trackingTask.cancel()
             await trackingTask.value
-        } else {
-            logger.warning("Session did not have a tracking task")
         }
         removeOverlayModel()
         let sessionId = sessionId
         self.sessionId = nil
         trackingCount = 0
-        // todo: stop the AR session and set adjustedWorldOrigin to false
+        
+        removeOverlayModel()
+        if isArSessionRunning, let sceneView = sceneView {
+            stopArSession(sceneView)
+        }
+        self.sceneView = nil
 
         if sessionId != nil {
             let _ = try await executeRequest(of: Requests_GetModelOutput.self, method: "DELETE", path: "sessions/\(sessionId!)")
@@ -299,12 +329,13 @@ extension SurgeryController: SurgeryModelDelegate {
         await MainActor.run {
             model.phase = .done
         }
-
-        // todo: notify the server so it can close the session
     }
     
     /// Begins the ongoing process of tracking the position of the bone.  This makes a single pose request to the server, so this is a long-running operation
     func startTracking() async throws {
+        guard isTrackingStateNormal() else {
+            throw logger.logAndGetError("Could not start tracking because the AR system is not normal.  Waiting a moment and retrying may fix it.")
+        }
         await MainActor.run {
             model.phase = .initializingTracking
         }
@@ -403,18 +434,21 @@ extension SurgeryController: SurgeryModelDelegate {
             model.overlayYAngle = overlayAngles.y
             model.overlayZAngle = overlayAngles.z
 
-            ensureAxises(overlayNode: overlayNode)
             updateOverlayPosition(overlayNode: overlayNode)
+
+            if Settings.shared.enableAxes {
+                ensureAxes(overlayNode: overlayNode)
+            }
         }
     }
     
     @MainActor
-    func ensureAxises(overlayNode: SCNNode) {
+    func ensureAxes(overlayNode: SCNNode) {
         guard axis1 == nil && axis2 == nil else {
             return
         }
         
-        logger.info("Creating pin guide axises")
+        logger.info("Creating pin guide axes")
         let axis1 = createAxis(radius: model.axisRadius, length: model.axisLength)
         self.axis1 = axis1
 
@@ -425,7 +459,7 @@ extension SurgeryController: SurgeryModelDelegate {
         overlayNode.addChildNode(axis1)
         overlayNode.addChildNode(axis2)
     }
-    
+
     @MainActor
     func updateOverlayPosition(overlayNode: SCNNode) {
         let position = SCNVector3(model.overlayX, model.overlayY, model.overlayZ)
@@ -461,8 +495,15 @@ extension SurgeryController: SurgeryModelDelegate {
         logger.info("Axis 2 position: \(axis2.position), angles (\(model.axisXAngle),\(model.axisYAngle),\(model.axisZAngle)): \(axis2.eulerAngles)")
     }
     
+    func isTrackingStateNormal() -> Bool {
+        guard let sceneView = sceneView, let frame = sceneView.session.currentFrame else {
+            return false
+        }
+        return frame.camera.trackingState == .normal
+    }
+    
     func exportScene() async throws {
-        guard let scene = self.scene else {
+        guard let scene = await self.sceneView?.scene else {
             throw logger.logAndGetError("Could not get scene to export")
         }
         try await scene.export()

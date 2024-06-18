@@ -64,18 +64,6 @@ class SurgeryModel: NSObject, ObservableObject {
         }
     }
 
-    func resetWorldOrigin() {
-        guard let delegate = delegate else {
-            logger.warning("resetWorldOrigin did nothing because delegate is nil")
-            return
-        }
-        do {
-            try delegate.resetWorldOrigin()
-        } catch {
-            logger.error("Error resetWorldOrigin: \(error.localizedDescription)")
-        }
-    }
-
     @MainActor
     func setError(errorTitle: String, errorMessage: String) {
         self.errorVisible = true
@@ -166,7 +154,6 @@ class SurgeryModel: NSObject, ObservableObject {
 
 protocol SurgeryModelDelegate: AnyObject {
     func getARView() throws -> ARSCNView
-    func resetWorldOrigin() throws
     func startTracking() async throws
     func startSession() async throws
     func stopSession() async throws
