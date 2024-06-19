@@ -26,18 +26,18 @@ class SurgeryModel: NSObject, ObservableObject {
     @Published @MainActor var axisRadius: Float = 0.001
     @Published @MainActor var axisLength: Float = 0.07
 
+    @Published @MainActor var axisXAngle: Float = 90
+    @Published @MainActor var axisYAngle: Float = -1
+    @Published @MainActor var axisZAngle: Float = 0
+
     // Axes properties that can be measured by the adjustment form, which can be turned on in Settings
-    @Published @MainActor var axis1X: Float = 0.038
+    @Published @MainActor var axis1X: Float = -0.027
     @Published @MainActor var axis1Y: Float = -0.002
     @Published @MainActor var axis1Z: Float = 0.060
 
-    @Published @MainActor var axisXAngle: Float = 90
-    @Published @MainActor var axisYAngle: Float = 13
-    @Published @MainActor var axisZAngle: Float = 0
-
-    @Published @MainActor var axis2X: Float = 0.01
+    @Published @MainActor var axis2X: Float = -0.052
     @Published @MainActor var axis2Y: Float = -0.002
-    @Published @MainActor var axis2Z: Float = 0.066
+    @Published @MainActor var axis2Z: Float = 0.063
 
     @Published @MainActor var overlayX: Float = 0
     @Published @MainActor var overlayY: Float = 0

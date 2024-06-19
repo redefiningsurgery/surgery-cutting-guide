@@ -12,13 +12,13 @@ fileprivate let camera_align_key = "camera_align"
 fileprivate let enable_axes_key = "enable_axes"
 
 class Settings: ObservableObject {
-    static let shared = Settings()
+    static let shared = Settings(syncWithUserDefaults: true)
     /// Whether to ignore setting of UserDefaults when properties are set as well as updating properties when settings are changed in the Settings app
     private var ignoreChanges: Bool
 
     @Published var devServerUrl: String = default_server_url {
         didSet {
-            if !ignoreChanges {
+            if !ignoreChanges && syncWithUserDefaults {
                 print("Setting UserDefaults \(server_url_key)")
                 UserDefaults.standard.set(devServerUrl, forKey: server_url_key)
             }
@@ -33,7 +33,7 @@ class Settings: ObservableObject {
 
     @Published var enableDevMode: Bool = false {
         didSet {
-            if !ignoreChanges {
+            if !ignoreChanges && syncWithUserDefaults {
                 print("Setting UserDefaults \(enable_dev_mode_key)")
                 UserDefaults.standard.set(enableDevMode, forKey: enable_dev_mode_key)
             }
@@ -42,7 +42,7 @@ class Settings: ObservableObject {
 
     @Published var continuouslyTrack: Bool = false {
         didSet {
-            if !ignoreChanges {
+            if !ignoreChanges && syncWithUserDefaults {
                 print("Setting UserDefaults \(continuously_track_key)")
                 UserDefaults.standard.set(continuouslyTrack, forKey: continuously_track_key)
             }
@@ -51,7 +51,7 @@ class Settings: ObservableObject {
 
     @Published var saveRequests: Bool = false {
         didSet {
-            if !ignoreChanges {
+            if !ignoreChanges && syncWithUserDefaults {
                 print("Setting UserDefaults \(save_requests_key)")
                 UserDefaults.standard.set(saveRequests, forKey: save_requests_key)
             }
@@ -60,7 +60,7 @@ class Settings: ObservableObject {
 
     @Published var showARDebugging: Bool = false {
         didSet {
-            if !ignoreChanges {
+            if !ignoreChanges && syncWithUserDefaults {
                 print("Setting UserDefaults \(ar_debugging_key)")
                 UserDefaults.standard.set(showARDebugging, forKey: ar_debugging_key)
             }
@@ -69,7 +69,7 @@ class Settings: ObservableObject {
 
     @Published var enableAxes: Bool = false {
         didSet {
-            if !ignoreChanges {
+            if !ignoreChanges && syncWithUserDefaults {
                 print("Setting UserDefaults \(enable_axes_key)")
                 UserDefaults.standard.set(enableAxes, forKey: enable_axes_key)
             }
@@ -78,20 +78,25 @@ class Settings: ObservableObject {
 
     @Published var alignOverlayWithCamera: Bool = false {
         didSet {
-            if !ignoreChanges {
+            if !ignoreChanges && syncWithUserDefaults {
                 print("Setting UserDefaults \(camera_align_key)")
                 UserDefaults.standard.set(alignOverlayWithCamera, forKey: camera_align_key)
             }
         }
     }
     
-    private init() {
+    private let syncWithUserDefaults: Bool
+    
+    init(syncWithUserDefaults: Bool = false) {
+        self.syncWithUserDefaults = syncWithUserDefaults
         ignoreChanges = true
 
-        // Setup notification observer
-        NotificationCenter.default.addObserver(self, selector: #selector(userDefaultsDidChange), name: UserDefaults.didChangeNotification, object: nil)
-
-        setValues()
+        if syncWithUserDefaults {
+            // Setup notification observer
+            NotificationCenter.default.addObserver(self, selector: #selector(userDefaultsDidChange), name: UserDefaults.didChangeNotification, object: nil)
+            
+            setValues()
+        }
     }
 
     /// Occurs when user updates settings in the system Settings app
@@ -137,7 +142,9 @@ class Settings: ObservableObject {
     }
     
     deinit {
-        // Remove observer
-        NotificationCenter.default.removeObserver(self)
+        if syncWithUserDefaults {
+            // Remove observer
+            NotificationCenter.default.removeObserver(self)
+        }
     }
 }

@@ -34,7 +34,7 @@ class SurgeryController: NSObject {
 
         subscribeToModelChanges()
     }
-    
+
     /// Sets up observers to handle changes in the model and adapt accordingly
     @MainActor
     private func subscribeToModelChanges() {
@@ -48,11 +48,10 @@ class SurgeryController: NSObject {
         Settings.shared.$alignOverlayWithCamera
             .sink { [weak self] _ in
                 if let self = self, let sceneView = self.sceneView {
-                    try? self.restartArSession()
+                    try? self.restartArSession(sceneView)
                 }
             }
             .store(in: &cancellables)
-        
         Publishers.Merge6(model.$axis1X, model.$axis1Y, model.$axis1Z, model.$axis2X, model.$axis2Y, model.$axis2Z)
             .receive(on: DispatchQueue.main) // must do this or else changes will be "off by one" when you change values in the UI
             .sink { [weak self] _ in
@@ -142,6 +141,41 @@ class SurgeryController: NSObject {
             self.axis2 = nil
         }
     }
+    
+    func executeRequest<T : Message>(of: T.Type, method: String, path: String, body: Data? = nil) async throws -> T {
+        let urlString = "\(getServerUrl())/\(path)"
+        guard let url = URL(string: urlString) else {
+            throw logger.logAndGetError("Bad url: \(urlString)")
+        }
+        logger.info("\(method) \(urlString)")
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.httpBody = body
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        // Check the response code
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw logger.logAndGetError("Incorrect response type")
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            var errorDetail = "Bad response code: \(httpResponse.statusCode)"
+            if let responseData = String(data: data, encoding: .utf8), !responseData.isEmpty {
+                errorDetail += ", Message: \(responseData)"
+            }
+            // todo: this results in some god awful long messages.  maybe just log the details and show a summary
+            throw logger.logAndGetError(errorDetail)
+        }
+
+        do {
+            let output = try of.init(serializedData: data)
+            return output
+        } catch {
+            throw logger.logAndGetError("Failed to deserialize response")
+        }
+    }
+
 }
 
 extension SurgeryController: ARSCNViewDelegate {
@@ -187,12 +221,7 @@ extension SurgeryController: ARSessionDelegate {
             }
         }
     }
-    
-    func session(_ session: ARSession, didChange geoTrackingStatus: ARGeoTrackingStatus
-    ) {
-        self.logger.info("Tracking status changed")
-    }
-    
+
     func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
         self.logger.info("Tracking state changed to \(camera.trackingState)")
     }
@@ -236,45 +265,9 @@ extension SurgeryController: SurgeryModelDelegate {
         }
     }
     
-    func restartArSession() throws {
-        guard let sceneView = sceneView else {
-            return
-        }
+    func restartArSession(_ sceneView: ARSCNView) throws {
         stopArSession(sceneView)
         try startArSession(sceneView)
-    }
-
-    func executeRequest<T : Message>(of: T.Type, method: String, path: String, body: Data? = nil) async throws -> T {
-        let urlString = "\(getServerUrl())/\(path)"
-        guard let url = URL(string: urlString) else {
-            throw logger.logAndGetError("Bad url: \(urlString)")
-        }
-        logger.info("\(method) \(urlString)")
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.httpBody = body
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        // Check the response code
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw logger.logAndGetError("Incorrect response type")
-        }
-        
-        guard (200...299).contains(httpResponse.statusCode) else {
-            var errorDetail = "Bad response code: \(httpResponse.statusCode)"
-            if let responseData = String(data: data, encoding: .utf8), !responseData.isEmpty {
-                errorDetail += ", Message: \(responseData)"
-            }
-            throw logger.logAndGetError(errorDetail)
-        }
-
-        do {
-            let output = try of.init(serializedData: data)
-            return output
-        } catch {
-            throw logger.logAndGetError("Failed to deserialize response")
-        }
     }
 
     func startSession() async throws {

@@ -22,6 +22,7 @@ struct SettingsForm: View {
                 Toggle("Save server requests", isOn: $settings.saveRequests)
                 Toggle("Show AR debugging visuals", isOn: $settings.showARDebugging)
                 Toggle("Align to camera", isOn: $settings.alignOverlayWithCamera)
+                Toggle("Show hole axes", isOn: $settings.enableAxes)
             }
         }
     }

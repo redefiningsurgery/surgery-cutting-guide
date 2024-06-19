@@ -16,7 +16,7 @@ struct RootView: View {
         case .initialized:
             let controller = SurgeryController()
             NavigationView {
-                SurgeryView(model: controller.model)
+                SurgeryView(model: controller.model, settings: Settings.shared)
             }
             .navigationViewStyle(StackNavigationViewStyle())
         }

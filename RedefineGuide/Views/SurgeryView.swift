@@ -3,7 +3,7 @@ import SwiftUI
 struct SurgeryView: View {
     @ObservedObject var model: SurgeryModel
     
-    @ObservedObject var settings: Settings = Settings.shared
+    @ObservedObject var settings: Settings
 
     var body: some View {
         if model.phase == .notStarted {
@@ -20,7 +20,7 @@ struct SurgeryView: View {
             SurgeryInitializingTracking(model: model)
                 .showErrors(model)
         } else {
-            SurgeryTracking(model: model, enableDevMode: settings.enableDevMode, isContinuousTracking: settings.continuouslyTrack)
+            SurgeryTracking(model: model, settings: settings)
                 .showErrors(model)
         }
     }
@@ -53,35 +53,35 @@ extension View {
 #Preview("Not Started") {
     let model = SurgeryModel()
     model.phase = .notStarted
-    return SurgeryView(model: model)
+    return SurgeryView(model: model, settings: Settings())
 }
 
 #Preview("Starting") {
     let model = SurgeryModel()
     model.phase = .starting
-    return SurgeryView(model: model)
+    return SurgeryView(model: model, settings: Settings())
 }
 
 #Preview("Aligning") {
     let model = SurgeryModel()
     model.phase = .aligning
-    return SurgeryView(model: model)
+    return SurgeryView(model: model, settings: Settings())
 }
 
 #Preview("Initializing Tracking") {
     let model = SurgeryModel()
     model.phase = .initializingTracking
-    return SurgeryView(model: model)
+    return SurgeryView(model: model, settings: Settings())
 }
 
 #Preview("Tracking") {
     let model = SurgeryModel()
     model.phase = .tracking
-    return SurgeryView(model: model)
+    return SurgeryView(model: model, settings: Settings())
 }
 
 #Preview("Done") {
     let model = SurgeryModel()
     model.phase = .done
-    return SurgeryView(model: model)
+    return SurgeryView(model: model, settings: Settings())
 }

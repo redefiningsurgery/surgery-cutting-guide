@@ -2,10 +2,7 @@ import SwiftUI
 
 struct SurgeryTracking: View {
     @ObservedObject var model: SurgeryModel
-    
-    var enableDevMode: Bool = false
-    
-    var isContinuousTracking: Bool = false
+    @ObservedObject var settings: Settings
     
     @State private var isDevModeActive = false
     
@@ -14,8 +11,8 @@ struct SurgeryTracking: View {
             ARViewContainer(model: model)
         }
         .overlay(alignment: .top) {
-            if enableDevMode && isDevModeActive {
-                AxisAdjustForm(model: model)
+            if settings.enableDevMode && isDevModeActive {
+                AxisAdjustForm(model: model, settings: settings)
             }
         }
         .overlay(alignment: .bottom) {
@@ -32,7 +29,7 @@ struct SurgeryTracking: View {
                                 .fill(.red))
                 })
                 // button to manually update tracking
-                if !isContinuousTracking {
+                if !settings.continuouslyTrack {
                     AsyncButton(showSuccessIndicator: true, action: {
                         await model.trackOnce()
                     }, label: {
@@ -42,7 +39,7 @@ struct SurgeryTracking: View {
             }
         }
         .overlay(alignment: .bottomTrailing) {
-            if enableDevMode {
+            if settings.enableDevMode {
                 HStack {
                     if isDevModeActive {
                         AsyncButton(showSuccessIndicator: true,
@@ -77,10 +74,15 @@ struct SurgeryTracking: View {
 
 #Preview("Default") {
     let model = SurgeryModel()
-    return SurgeryTracking(model: model)
+    let settings = Settings()
+    return SurgeryTracking(model: model, settings: settings)
 }
 
 #Preview("Dev mode") {
     let model = SurgeryModel()
-    return SurgeryTracking(model: model, enableDevMode: true, isContinuousTracking: false)
+    let settings = Settings()
+    settings.continuouslyTrack = false
+    settings.enableDevMode = true
+    settings.enableAxes = true
+    return SurgeryTracking(model: model, settings: settings)
 }
