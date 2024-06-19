@@ -15,6 +15,8 @@ func makeTrackingRequest(sessionId: String, frame: ARFrame) throws -> Requests_G
     // https://developer.apple.com/documentation/arkit/arcamera/2875730-intrinsics
     request.intrinsics = frame.camera.intrinsics.toArrayRowMajor()
     request.transform = frame.camera.transform.toArrayRowMajor()
+    // use the fast version when it's being continuously updated.  but if updates are only occasional, use the slow approach because if you move the camera significantly without updating, it'll expect incremental approaches and won't consider the correct pose
+    request.optimizeForSpeed = Settings.shared.continuouslyTrack
     return request
 }
 

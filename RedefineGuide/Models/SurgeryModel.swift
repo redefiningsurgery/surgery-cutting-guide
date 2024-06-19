@@ -22,6 +22,8 @@ class SurgeryModel: NSObject, ObservableObject {
     /// Only useful if errorExists is true.  Contains some details of the error message like: "Device is in low power mode.  Turn off low power mode to re-enable recording"
     @Published @MainActor private(set) var errorMessage: String = ""
 
+    @Published @MainActor var isArTrackingNormal: Bool = false
+    
     // Note: tracking needs to be restarted for these values to be reflected
     @Published @MainActor var axisRadius: Float = 0.001
     @Published @MainActor var axisLength: Float = 0.07
@@ -39,12 +41,9 @@ class SurgeryModel: NSObject, ObservableObject {
     @Published @MainActor var axis2Y: Float = -0.002
     @Published @MainActor var axis2Z: Float = 0.063
 
-    @Published @MainActor var overlayX: Float = 0
-    @Published @MainActor var overlayY: Float = 0
-    @Published @MainActor var overlayZ: Float = 0
-    @Published @MainActor var overlayXAngle: CGFloat = 0
-    @Published @MainActor var overlayYAngle: CGFloat = 0
-    @Published @MainActor var overlayZAngle: CGFloat = 0
+    var overlayTransform: simd_float4x4 = simd_float4x4() // the transform that came from FoundationPose
+    var cameraTransform: simd_float4x4 = simd_float4x4() // the transform that came from FoundationPose
+    @Published @MainActor var overlayOffset: Float = 0
     @Published @MainActor var overlayOpacity: Float = 0.8
 
     var delegate: SurgeryModelDelegate? = nil

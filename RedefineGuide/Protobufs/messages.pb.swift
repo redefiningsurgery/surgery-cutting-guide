@@ -61,6 +61,8 @@ struct Requests_GetPositionInput {
 
   var oy: Float = 0
 
+  var optimizeForSpeed: Bool = false
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -139,6 +141,7 @@ extension Requests_GetPositionInput: SwiftProtobuf.Message, SwiftProtobuf._Messa
     11: .same(proto: "fy"),
     12: .same(proto: "ox"),
     13: .same(proto: "oy"),
+    14: .standard(proto: "optimize_for_speed"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -156,6 +159,7 @@ extension Requests_GetPositionInput: SwiftProtobuf.Message, SwiftProtobuf._Messa
       case 11: try { try decoder.decodeSingularFloatField(value: &self.fy) }()
       case 12: try { try decoder.decodeSingularFloatField(value: &self.ox) }()
       case 13: try { try decoder.decodeSingularFloatField(value: &self.oy) }()
+      case 14: try { try decoder.decodeSingularBoolField(value: &self.optimizeForSpeed) }()
       default: break
       }
     }
@@ -189,6 +193,9 @@ extension Requests_GetPositionInput: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if self.oy != 0 {
       try visitor.visitSingularFloatField(value: self.oy, fieldNumber: 13)
     }
+    if self.optimizeForSpeed != false {
+      try visitor.visitSingularBoolField(value: self.optimizeForSpeed, fieldNumber: 14)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -202,6 +209,7 @@ extension Requests_GetPositionInput: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if lhs.fy != rhs.fy {return false}
     if lhs.ox != rhs.ox {return false}
     if lhs.oy != rhs.oy {return false}
+    if lhs.optimizeForSpeed != rhs.optimizeForSpeed {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

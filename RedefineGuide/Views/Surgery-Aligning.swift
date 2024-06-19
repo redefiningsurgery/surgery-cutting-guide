@@ -22,8 +22,11 @@ struct SurgeryAligning: View {
                         .padding(8)
                         .fontWeight(.heavy)
                         .foregroundColor(.white)
-                        .background(.primaryGreen, in: .rect(cornerRadius: 4))
+                        .background(model.isArTrackingNormal ? .primaryGreen : .gray, in: .rect(cornerRadius: 4))
+                        .opacity(model.isArTrackingNormal ? 1 : 0.5)
                 })
+                .disabled(!model.isArTrackingNormal)
+                
                 ConfirmButton(action: {
                     model.stopSession()
                 }, label: {

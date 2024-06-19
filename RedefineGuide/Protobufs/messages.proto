@@ -37,6 +37,9 @@ message GetPositionInput {
     float fy = 11;
     float ox = 12;
     float oy = 13;
+    
+    // Fast pose estimation considers fewer poses but completes faster
+    bool optimize_for_speed = 14;
 }
 
 message GetPositionOutput {
