@@ -293,7 +293,7 @@ extension SurgeryController: SurgeryModelDelegate {
             model.phase = .aligning
         }
     }
-       
+
     func stopSession() async throws {
         if let trackingTask = trackingTask, !trackingTask.isCancelled {
             trackingTask.cancel()
@@ -316,6 +316,8 @@ extension SurgeryController: SurgeryModelDelegate {
         
         await MainActor.run {
             model.phase = .done
+            model.pose = nil
+            model.cameraTransform = nil
         }
     }
     
@@ -396,7 +398,7 @@ extension SurgeryController: SurgeryModelDelegate {
         guard let resultTransform = createSim4Float4x4FromRowMajor(response.transform) else {
             throw logger.logAndGetError("Result transform was invalid")
         }
-        model.overlayTransform = resultTransform
+        model.pose = resultTransform
         model.cameraTransform = frame.camera.transform
         guard let overlayNode = overlayNode else {
             throw logger.logAndGetError("Overlay was not present")
@@ -439,12 +441,21 @@ extension SurgeryController: SurgeryModelDelegate {
 
     @MainActor
     func updateOverlayPosition(overlayNode: SCNNode) {
-        let finalTransform = adjustedTransform(originalTransform: model.overlayTransform, cameraTransform: model.cameraTransform, distance: model.overlayOffset) // -0.009
-        let position = SCNVector3(finalTransform.columns.3.x, finalTransform.columns.3.y, finalTransform.columns.3.z)
-        overlayNode.simdOrientation = simd_quaternion(finalTransform)
-        overlayNode.position = position
+        guard let pose = model.pose, let cameraTransform = model.cameraTransform else {
+            logger.warning("Could not update overlay position because there was no pose and/or camera transform in the model")
+            return
+        }
+        let magicRot = simd_float4x4(
+            simd_float4( 1,  0,  0, 0),
+            simd_float4( 0, -1,  0, 0),
+            simd_float4( 0,  0, -1, 0),
+            simd_float4( 0,  0,  0, 1)
+        )
+        let adjustedPose = simd_mul(magicRot, pose)
+        let resultTransform = simd_mul(cameraTransform, adjustedPose)
 
-        logger.info("Placed overlay at position \(position) and orientation \(overlayNode.orientation) with angles \(overlayNode.eulerAngles)")
+        let finalTransform = adjustedTransform(originalTransform: resultTransform, cameraTransform: cameraTransform, distance: model.overlayOffset) // -0.009
+        overlayNode.simdTransform = finalTransform
     }
     
     @MainActor
@@ -476,3 +487,4 @@ extension SurgeryController: SurgeryModelDelegate {
         try await scene.export()
     }
 }
+

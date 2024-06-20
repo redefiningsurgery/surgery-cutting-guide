@@ -41,8 +41,8 @@ class SurgeryModel: NSObject, ObservableObject {
     @Published @MainActor var axis2Y: Float = -0.002
     @Published @MainActor var axis2Z: Float = 0.063
 
-    var overlayTransform: simd_float4x4 = simd_float4x4() // the transform that came from FoundationPose
-    var cameraTransform: simd_float4x4 = simd_float4x4() // the transform that came from FoundationPose
+    var pose: simd_float4x4? = nil // the transform that came from FoundationPose
+    var cameraTransform: simd_float4x4? = nil // the camera transform at the time the frame was captured
     @Published @MainActor var overlayOffset: Float = 0
     @Published @MainActor var overlayOpacity: Float = 0.8
 
