@@ -43,7 +43,11 @@ class SurgeryModel: NSObject, ObservableObject {
 
     var pose: simd_float4x4? = nil // the transform that came from FoundationPose
     var cameraTransform: simd_float4x4? = nil // the camera transform at the time the frame was captured
-    @Published @MainActor var overlayOffset: Float = 0
+    @Published @MainActor var overlayCameraOffset: Float = 0 // brings the overlay closer or farther at the camera angle
+    @Published @MainActor var overlayXOffset: Float = 0 // after camera offset is applied, this will nudge the model in the X direction
+    @Published @MainActor var overlayYOffset: Float = 0 // after camera offset is applied, this will nudge the model in the Y direction
+    @Published @MainActor var overlayZOffset: Float = 0 // after camera offset is applied, this will nudge the model in the Z direction
+
     @Published @MainActor var overlayOpacity: Float = 0.8
 
     var delegate: SurgeryModelDelegate? = nil

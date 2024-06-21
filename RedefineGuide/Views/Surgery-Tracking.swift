@@ -34,22 +34,20 @@ struct SurgeryTracking: View {
                         await model.trackOnce()
                     }, label: {
                         Text("Update")
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                            .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(.primaryGreen))
                     })
+                    .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 0)) // add some space between the buttons
                 }
             }
         }
         .overlay(alignment: .bottomTrailing) {
             if settings.enableDevMode {
                 HStack {
-                    if isDevModeActive {
-                        AsyncButton(showSuccessIndicator: true,
-                            action: {
-                                await model.exportScene()
-                            },
-                            label: {
-                                Text("Export Scene")
-                            })
-                    }
                     Button(action: {
                         isDevModeActive.toggle()
                     }) {
@@ -75,6 +73,13 @@ struct SurgeryTracking: View {
 #Preview("Default") {
     let model = SurgeryModel()
     let settings = Settings()
+    return SurgeryTracking(model: model, settings: settings)
+}
+
+#Preview("Continuous tracking") {
+    let model = SurgeryModel()
+    let settings = Settings()
+    settings.continuouslyTrack = true
     return SurgeryTracking(model: model, settings: settings)
 }
 

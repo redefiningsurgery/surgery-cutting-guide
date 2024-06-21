@@ -148,7 +148,7 @@ func getPositionInFrontOfCamera(cameraTransform: simd_float4x4, distanceMeters: 
     return cameraPosition + adjustedForwardPosition
 }
 
-func adjustedTransform(originalTransform: simd_float4x4, cameraTransform: simd_float4x4, distance: Float) -> simd_float4x4 {
+func adjustedTransform(originalTransform: simd_float4x4, cameraTransform: simd_float4x4, distance: Float, xOffset: Float, yOffset: Float, zOffset: Float) -> simd_float4x4 {
     // Extract the forward vector from the camera transform (3rd row of the rotation matrix)
     let forwardVector = simd_float3(-cameraTransform.columns.2.x, -cameraTransform.columns.2.y, -cameraTransform.columns.2.z)
     
@@ -157,9 +157,9 @@ func adjustedTransform(originalTransform: simd_float4x4, cameraTransform: simd_f
     
     // Adjust the original translation
     var adjustedTransform = originalTransform
-    adjustedTransform.columns.3.x += translationAdjustment.x
-    adjustedTransform.columns.3.y += translationAdjustment.y
-    adjustedTransform.columns.3.z += translationAdjustment.z
+    adjustedTransform.columns.3.x += translationAdjustment.x + xOffset
+    adjustedTransform.columns.3.y += translationAdjustment.y + yOffset
+    adjustedTransform.columns.3.z += translationAdjustment.z + zOffset
     
     return adjustedTransform
 }

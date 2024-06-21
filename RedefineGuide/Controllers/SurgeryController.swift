@@ -45,6 +45,7 @@ class SurgeryController: NSObject {
                 }
             }
             .store(in: &cancellables)
+        
         Settings.shared.$alignOverlayWithCamera
             .sink { [weak self] _ in
                 if let self = self, let sceneView = self.sceneView {
@@ -52,6 +53,7 @@ class SurgeryController: NSObject {
                 }
             }
             .store(in: &cancellables)
+        
         Publishers.Merge6(model.$axis1X, model.$axis1Y, model.$axis1Z, model.$axis2X, model.$axis2Y, model.$axis2Z)
             .receive(on: DispatchQueue.main) // must do this or else changes will be "off by one" when you change values in the UI
             .sink { [weak self] _ in
@@ -60,6 +62,7 @@ class SurgeryController: NSObject {
                 }
             }
             .store(in: &cancellables)
+        
         Publishers.Merge3(model.$axisXAngle, model.$axisYAngle, model.$axisZAngle)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -68,7 +71,8 @@ class SurgeryController: NSObject {
                 }
             }
             .store(in: &cancellables)
-        model.$overlayOffset
+
+        Publishers.Merge4(model.$overlayCameraOffset, model.$overlayXOffset, model.$overlayYOffset, model.$overlayYOffset)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 if let self = self, self.updateOnModelPositionChanges, let overlayNode = self.overlayNode {
@@ -92,7 +96,7 @@ class SurgeryController: NSObject {
             configuration.worldAlignment = .camera // setting this makes it super stable but when you move the camera, the overlay moves as well.  but this is interesting and basically eliminiates the drift problem
         }
         sceneView.session.delegate = self
-        sceneView.session.run(configuration, options: [.resetTracking])
+        sceneView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
         logger.info("Started AR session")
         isArSessionRunning = true
     }
@@ -454,8 +458,10 @@ extension SurgeryController: SurgeryModelDelegate {
         let adjustedPose = simd_mul(magicRot, pose)
         let resultTransform = simd_mul(cameraTransform, adjustedPose)
 
-        let finalTransform = adjustedTransform(originalTransform: resultTransform, cameraTransform: cameraTransform, distance: model.overlayOffset) // -0.009
+        let finalTransform = adjustedTransform(originalTransform: resultTransform, cameraTransform: cameraTransform, distance: model.overlayCameraOffset, xOffset: model.overlayXOffset, yOffset: model.overlayYOffset, zOffset: model.overlayZOffset) // -0.009
         overlayNode.simdTransform = finalTransform
+        
+        logger.info("Updated overlay: \(overlayNode.position) \(overlayNode.orientation)")
     }
     
     @MainActor

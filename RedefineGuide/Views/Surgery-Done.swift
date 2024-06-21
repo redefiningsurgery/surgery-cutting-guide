@@ -5,17 +5,15 @@ struct SurgeryDone: View {
     
     var body: some View {
         Centered {
-            Centered {
-                VStack {
-                    Spacer()
-                    Text("Done!")
-                        .font(.title)
-                    Spacer()
-                    Button("Start new Pin Placement") {
-                        model.startSession()
-                    }
-                    Spacer()
+            VStack {
+                Spacer()
+                Text("Welcome to Redefine Surgery Guide")
+                    .font(.title)
+                Spacer()
+                Button("Start Pin Placement") {
+                    model.startSession()
                 }
+                Spacer()
             }
         }
         .overlay(alignment: .topTrailing) {
